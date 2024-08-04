@@ -238,6 +238,272 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/08/05/CVE-2024-38856-ofbiz-12-14-filter%E7%BB%95%E8%BF%87%E5%88%B0rce/" target="_self">
+          (CVE-2024-38856)ofbiz_12.14_filter绕过到rce
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/05/CVE-2024-38856-ofbiz-12-14-filter%E7%BB%95%E8%BF%87%E5%88%B0rce/" target="_self">
+        <div>
+          0x01  Vulnerability description​			In apache ofbiz 12.14, there is remote command execution. Users can use a specific url to bypass filter detection, resulting in unauthorized execution of goorvy code
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-05 00:09" pubdate>
+              2024-08-05
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/04/Apache-Wicket%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C-%E5%AE%98%E6%96%B9%E8%AE%A4%E4%B8%BA%E6%98%AF%E6%AD%A3%E5%B8%B8%E5%8A%9F%E8%83%BD/" target="_self">
+          Apache Wicket代码执行(官方认为是正常功能)
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/04/Apache-Wicket%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C-%E5%AE%98%E6%96%B9%E8%AE%A4%E4%B8%BA%E6%98%AF%E6%AD%A3%E5%B8%B8%E5%8A%9F%E8%83%BD/" target="_self">
+        <div>
+          0x01 漏洞描述​			Apache Wicket是一个Java 语言的Web开发框架。2024年6月，官方发布 9.18.0 与 10.1.0 版本 修复CVE-2024-36522 Apache Wicket XSLT 代码执行漏洞。攻击者可构造恶意请求执行任意代码，控制服务器。但是在 9.18.0 与 10.1.0 版本仍可以进行XSLT 代码执行。 0x02  漏洞分析org.apach
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-04 23:57" pubdate>
+              2024-08-04
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/" target="_self">
+          fine报表问题
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/" target="_self">
+        <div>
+          0x01 帆软finereBI&#x2F;report后台本地命令执行 JAR包版本号： 6.1.0（JAR：Build#persist-2024.05.30.11.06.10.457）  https://www.finebi.com/product/download  对应版本6月12日的版本 0x02 poc 构造下载发现官方软件代码,出厂lib中存在sqlite组件。  http://loc
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-04 23:55" pubdate>
+              2024-08-04
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/04/o2oa%E5%AE%A1%E8%AE%A1/" target="_self">
+          o2oa审计
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/04/o2oa%E5%AE%A1%E8%AE%A1/" target="_self">
+        <div>
+          纯代码层面分析，可能存在的问题，未复现 0x01 反序列化com.x.base.core.project.cache.CacheRedisImpl#get  从redis获取key对应的value转换成byte流，然后进行反序列化 调用 com.x.base.core.project.cache.CacheManager#get  网上很容易就能找到对应的control，太多了   开放java.
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-04 23:48" pubdate>
+              2024-08-04
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/07/06/hessian_tostring/" target="_self">
+          
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/hessian_tostring/" target="_self">
+        <div>
+          0x01  TreeMap 的 四条触发tosting核心就是利用javax.naming.ldap.Rdn.RdnEntry#compareTo去触发obj1.equals(obj2) 123456789101112131415161718192021222324252627282930        Object xstring = utils.createWithoutConstructor
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-07-06 12:34" pubdate>
+              2024-07-06
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/23/finechanneljdbc%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/" target="_self">
+          finechanneljdbc工具说明
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/23/finechanneljdbc%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/" target="_self">
+        <div>
+          Here's something encrypted, password is required to continue reading.
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-23 00:15" pubdate>
+              2024-06-23
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%B7%A5%E5%85%B7/">#漏洞工具</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/06/23/%E6%9F%90%E6%8A%A5%E8%A1%A8%E6%9C%80%E6%96%B0%E5%8F%8D%E5%BA%8F%E5%88%97%E6%BC%8F%E6%B4%9E/" target="_self">
+          某报表最新反序列漏洞
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/23/%E6%9F%90%E6%8A%A5%E8%A1%A8%E6%9C%80%E6%96%B0%E5%8F%8D%E5%BA%8F%E5%88%97%E6%BC%8F%E6%B4%9E/" target="_self">
+        <div>
+          Here's something encrypted, password is required to continue reading.
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-06-23 00:13" pubdate>
+              2024-06-23
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/06/08/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8-%E4%B8%89/" target="_self">
           静态恶意代码逃逸(三)
         </a>
@@ -352,297 +618,11 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/03/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8%E5%AD%A6%E4%B9%A0-1/" target="_self">
-          静态恶意代码逃逸学习(1)
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/03/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8%E5%AD%A6%E4%B9%A0-1/" target="_self">
-        <div>
-          0x01 前言​		2024，代码审计+渗透测试已经满足不了市场，所以准备花几个月学免杀，虽然以前写一个一些免杀，但是好久没用上。so，这次就从头开始。 0x02 Shellcode定义​		Shellcode是一段机器指令的集合，通常会被压缩至很小的长度，达到为后续恶意代码铺垫的作用。当然你可以通过msfvenom生成各种用于测试的shellcode。 0x03 RAW文件​		RAW 中文意思
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-03 09:58" pubdate>
-              2024-06-03
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%85%8D%E6%9D%80/">#免杀</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/05/28/%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E8%87%B4%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2024-32113%EF%BC%89%E5%88%86%E6%9E%90%E2%80%99/" target="_self">
-          目录遍历致代码执行漏洞（CVE-2024-32113）分析’
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/05/28/%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E8%87%B4%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2024-32113%EF%BC%89%E5%88%86%E6%9E%90%E2%80%99/" target="_self">
-        <div>
-          目录遍历致代码执行漏洞（CVE-2024-32113）分析先知首发 https://xz.aliyun.com/t/14733 0x01 漏洞介绍​			Apache OFBiz是一个电子商务平台，用于构建大中型企业级、跨平台、跨数据库、跨应用服务器的多层、分布式电子商务类应用系统。2024年5月，官方发布新版本修复了CVE-2024-32113 Apache OFBiz 目录遍历致代码执行漏洞，
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-05-28 08:37" pubdate>
-              2024-05-28
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">#漏洞分析</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/05/18/aj-report-%E4%BA%8C%E6%AC%A1%E5%B0%B1%E4%B8%9A/" target="_self">
-          aj-report 二次就业
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/05/18/aj-report-%E4%BA%8C%E6%AC%A1%E5%B0%B1%E4%B8%9A/" target="_self">
-        <div>
-          前提​	最新先知有人发了aj-report文章，看了看，是一个filter绕过，还有jwt，竟然还没修,这是两年前发表的AJ-Report_RCE。aj-report是我两年前学习代码审计审计的第一套代码，那时候藏了一些洞没写，所以现在重新看一看。 环境v1.4.1。 0x01 filter 绕过com.anjiplus.template.gaea.business.filter.TokenFil
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-05-18 20:40" pubdate>
-              2024-05-18
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/cms/">#cms</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/" target="_self">
-          nginxwebui&lt;=3.9.9后台rce
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/04/06/nginxwebui-3-9-9%E5%90%8E%E5%8F%B0rce/" target="_self">
-        <div>
-          ​		首发于https://xz.aliyun.com/t/14227   前言​		半年前，审计过一次这套代码，那时候想着后台有命令执行的功能点，就没关注rce，审计了一些别的水洞。这次hookdd没事，说审计了一个rce，说一起看看，所以这次就只看rce，最后就有个以下几个洞。本次使用的3.9.8版本，但是刚刚更新了3.9.9，不过看描述，并没有修复一下几个点，应该都可以使用。（最新版依旧可用
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-04-06 23:57" pubdate>
-              2024-04-06
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/03/01/apache-cayenne%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" target="_self">
-          apache-cayenne代码审计
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/03/01/apache-cayenne%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" target="_self">
-        <div>
-          首发于先知http://xz.aliyun.com/t/13990 0x01 起因​		去年年底学了学hessian协议，Umbrella师傅推荐了几套代码，其中就选择sofa-rpc、dobbo-admin、cayenne等代码。其中过年前，审计了sofa-rpc，奈何大佬已经交过cve，成了1。（估计参考：http://xz.aliyun.com/t/13462）现在年后，天天在帮客户挖cnv
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-03-01 12:34" pubdate>
-              2024-03-01
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/28/hessian%E5%8F%8D%E5%BA%8F%E5%88%97-Print%E2%80%94gadget/" target="_self">
-          hessian反序列_Print—gadget
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/02/28/hessian%E5%8F%8D%E5%BA%8F%E5%88%97-Print%E2%80%94gadget/" target="_self">
-        <div>
-          0x01 dubbo CVE-2022-391982.7.x &lt; version &lt; 2.7.18 3.0.x &lt; version &lt; 3.0.12 3.1.x &lt; version &lt;&#x3D; 3.1.0 我们看看github的diff https://github.com/apache/dubbo-hessian-lite/commit/5727b36a3
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-28 23:32" pubdate>
-              2024-02-28
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/java-gadget/">#java-gadget</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2024/02/20/xxljob-2-4-0%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" target="_self">
-          <img src="/2024/02/20/xxljob-2-4-0%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/68747470733a2f2f7777772e78757875656c692e636f6d2f646f632f7374617469632f78786c2d6a6f622f696d616765732f78786c2d6c6f676f2e6a7067.jpeg" srcset="/img/loading.gif" lazyload alt="xxljob-2.4.0代码审计">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/02/20/xxljob-2-4-0%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" target="_self">
-          xxljob-2.4.0代码审计
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/2024/02/20/xxljob-2-4-0%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" target="_self">
-        <div>
-          xxljob-2.4.0 代码审计 0x01 一些需要的知识​		XXL-JOB是一个分布式任务调度平台，其核心设计目标是开发迅速、学习简单、轻量级、易扩展。本次主要针对xxl-job的调度流程。   0x02 xxljob主要使用的api客户端注册和执行结果上报（客户端发送给服务端） 1234567891011121314@Overridepublic ReturnT&lt;String&gt;
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-02-20 20:04" pubdate>
-              2024-02-20
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

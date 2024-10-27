@@ -238,6 +238,39 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/" target="_self">
+          ruoyi定时任务浅析
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/" target="_self">
+        <div>
+          前言​		以前都是直接贴poc，没分析过，最近碰见了也是定时任务，但不是若依的一套，回来看若依，发现若依的逻辑也抽象了，真是捡洞。 定时任务分析 创建任务 下载源码后，我们可以在ruoyi-quartz模块，拿到ruoyi定时任务的源码。   com.ruoyi.quartz.controller.SysJobController  这里就是对应的模块 com.ruoyi.quartz.contr
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-10-26 17:42" pubdate>
+              2024-10-26
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/10/26/xxljob-agent%E5%86%85%E5%AD%98%E9%A9%AC-2-3-1/" target="_self">
           xxljob-agent内存马(&gt;=2.3.0)
         </a>
@@ -246,7 +279,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/10/26/xxljob-agent%E5%86%85%E5%AD%98%E9%A9%AC-2-3-1/" target="_self">
         <div>
-          前言  前几个月攻防时，碰到有执行器，但是执行器不触发，且执行器和注册中心都在一个机器上，所以直接打agent马子就好了。用网上的poc结果不行，所以自己就研究了下，没什么好说的，直接贴代码。执行后会在日记里获取agent注入信息，当然，9999也是可以盲打，直接替换一下就行，就不贴了。可能2.3.0以上的IJobHandler可能有点不一样，大家自己手动改改就行。  0x01 poc123456
+          前言前几个月攻防时，碰到有执行器，但是执行器不触发，且执行器和注册中心都在一个机器上，所以直接打agent马子就好了。用网上的poc结果不行，所以自己就研究了下，没什么好说的，直接贴代码。执行后会在日记里获取agent注入信息，当然，9999也是可以盲打，直接替换一下就行，就不贴了。可能2.3.0以上的IJobHandler可能有点不一样，大家自己手动改改就行 0x01 poc1234567891
         </div>
       </a>
 
@@ -559,39 +592,6 @@
               <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
             
           </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/06/hessian_tostring/" target="_self">
-          
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/hessian_tostring/" target="_self">
-        <div>
-          0x01  TreeMap 的 四条触发tosting核心就是利用javax.naming.ldap.Rdn.RdnEntry#compareTo去触发obj1.equals(obj2) 123456789101112131415161718192021222324252627282930        Object xstring = utils.createWithoutConstructor
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-06 12:34" pubdate>
-              2024-07-06
-            </time>
-          </div>
-        
-        
         
       </div>
     </article>

@@ -238,6 +238,46 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/11/12/h2%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9C%A8jdk17%E4%B8%8B%E7%9A%84rce%E6%8E%A2%E7%B4%A2/" target="_self">
+          h2数据库在jdk17下的rce探索
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/11/12/h2%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9C%A8jdk17%E4%B8%8B%E7%9A%84rce%E6%8E%A2%E7%B4%A2/" target="_self">
+        <div>
+          很久前就挖到了，某些原因，一直藏到现在，现公开。 描述​		H2DataBase 在所有版本中（截止 2024 年 9 月 14 日，H2 最新版本为 2.3.232）均存在代码执行漏洞，在使用 H2 数据库创建 JDBC 连接时，攻击者可以在初始化时控制触发 Java 代码（所有 JDK 版本），并且不对输入的代码进行检查，从而导致代码执行漏洞。 分析H2 在解析 init 参数时，会对 Cr
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-11-12 21:50" pubdate>
+              2024-11-12
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/" target="_self">
           ruoyi定时任务浅析
         </a>
@@ -547,46 +587,6 @@
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
             <time datetime="2024-08-04 23:55" pubdate>
-              2024-08-04
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/08/04/o2oa%E5%AE%A1%E8%AE%A1/" target="_self">
-          o2oa审计
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/04/o2oa%E5%AE%A1%E8%AE%A1/" target="_self">
-        <div>
-          纯代码层面分析，可能存在的问题，未复现 0x01 反序列化com.x.base.core.project.cache.CacheRedisImpl#get  从redis获取key对应的value转换成byte流，然后进行反序列化 调用 com.x.base.core.project.cache.CacheManager#get  网上很容易就能找到对应的control，太多了   开放java.
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-04 23:48" pubdate>
               2024-08-04
             </time>
           </div>

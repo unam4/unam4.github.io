@@ -238,15 +238,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/" target="_self">
-          java反序列二周目(一)
+        <a href="/2024/11/12/h2%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9C%A8jdk17%E4%B8%8B%E7%9A%84rce%E6%8E%A2%E7%B4%A2/" target="_self">
+          h2数据库在jdk17下的rce探索
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/23/java%E5%8F%8D%E5%BA%8F%E5%88%97%E4%BA%8C%E5%91%A8%E7%9B%AE-%E4%B8%80/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/11/12/h2%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9C%A8jdk17%E4%B8%8B%E7%9A%84rce%E6%8E%A2%E7%B4%A2/" target="_self">
         <div>
-          前言​		最近黑神话悟空火热，大家都开启二周目。现在正直网安特殊时间，时间较多，随准备重走一遍反序列取经路，看看有没有新的触发方式，记录一下，方便以后直接使用。 0x01 commons.collections (map.get)​		最经典的反序列化gadget，触发点 LazyMap.get    这里LazyMap可以换成DefaultedMap (3.1没有这个类) 1234LazyMap
+          很久前就挖到了，某些原因，一直藏到现在，现公开。 描述​		H2DataBase 在所有版本中（截止 2024 年 9 月 14 日，H2 最新版本为 2.3.232）均存在代码执行漏洞，在使用 H2 数据库创建 JDBC 连接时，攻击者可以在初始化时控制触发 Java 代码（所有 JDK 版本），并且不对输入的代码进行检查，从而导致代码执行漏洞。 分析H2 在解析 init 参数时，会对 Cr
         </div>
       </a>
 
@@ -254,8 +254,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-08-23 13:32" pubdate>
-              2024-08-23
+            <time datetime="2024-11-12 21:50" pubdate>
+              2024-11-12
             </time>
           </div>
         
@@ -264,9 +264,155 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/gadget/">#gadget</a>
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
             
           </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/" target="_self">
+          ruoyi定时任务浅析
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/10/26/ruoyi%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E6%B5%85%E6%9E%90/" target="_self">
+        <div>
+          前言​		以前都是直接贴poc，没分析过，最近碰见了也是定时任务，但不是若依的一套，回来看若依，发现若依的逻辑也抽象了，真是捡洞。 定时任务分析 创建任务 下载源码后，我们可以在ruoyi-quartz模块，拿到ruoyi定时任务的源码。   com.ruoyi.quartz.controller.SysJobController  这里就是对应的模块 com.ruoyi.quartz.contr
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-10-26 17:42" pubdate>
+              2024-10-26
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">#漏洞分析</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/10/26/xxljob-agent%E5%86%85%E5%AD%98%E9%A9%AC-2-3-1/" target="_self">
+          xxljob-agent内存马(&gt;=2.3.0)
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/10/26/xxljob-agent%E5%86%85%E5%AD%98%E9%A9%AC-2-3-1/" target="_self">
+        <div>
+          前言前几个月攻防时，碰到有执行器，但是执行器不触发，且执行器和注册中心都在一个机器上，所以直接打agent马子就好了。用网上的poc结果不行，所以自己就研究了下，没什么好说的，直接贴代码。执行后会在日记里获取agent注入信息，当然，9999也是可以盲打，直接替换一下就行，就不贴了。可能2.3.0以上的IJobHandler可能有点不一样，大家自己手动改改就行 0x01 poc1234567891
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-10-26 13:15" pubdate>
+              2024-10-26
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/09/16/dubbo-admin-JWT2RCE/" target="_self">
+          Default jwt information leaks to RCE
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/09/16/dubbo-admin-JWT2RCE/" target="_self">
+        <div>
+          dobbo- admin Default jwt information leaks to RCE​		 年前挖的，apache没给cve，就出了个公告。没意思 0x01 analysis org&#x2F;apache&#x2F;dubbo&#x2F;admin&#x2F;utils&#x2F;JwtTokenUtil.java#generateToken() 12345678910public
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-09-16 00:23" pubdate>
+              2024-09-16
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/09/04/Tomcat9-to-11-dos/" target="_self">
+          Tomcat9 to 11 Full version stack overflow vulnerability (Apache does not receive)
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/09/04/Tomcat9-to-11-dos/" target="_self">
+        <div>
+          Here's something encrypted, password is required to continue reading.
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-09-04 14:44" pubdate>
+              2024-09-04
+            </time>
+          </div>
+        
+        
         
       </div>
     </article>
@@ -451,159 +597,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/06/hessian_tostring/" target="_self">
-          
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/hessian_tostring/" target="_self">
-        <div>
-          0x01  TreeMap 的 四条触发tosting核心就是利用javax.naming.ldap.Rdn.RdnEntry#compareTo去触发obj1.equals(obj2) 123456789101112131415161718192021222324252627282930        Object xstring = utils.createWithoutConstructor
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-06 12:34" pubdate>
-              2024-07-06
-            </time>
-          </div>
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/23/finechanneljdbc%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/" target="_self">
-          finechanneljdbc工具说明
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/23/finechanneljdbc%E5%B7%A5%E5%85%B7%E8%AF%B4%E6%98%8E/" target="_self">
-        <div>
-          Here's something encrypted, password is required to continue reading.
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-23 00:15" pubdate>
-              2024-06-23
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%B7%A5%E5%85%B7/">#漏洞工具</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/23/%E6%9F%90%E6%8A%A5%E8%A1%A8%E6%9C%80%E6%96%B0%E5%8F%8D%E5%BA%8F%E5%88%97%E6%BC%8F%E6%B4%9E/" target="_self">
-          某报表最新反序列漏洞
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/23/%E6%9F%90%E6%8A%A5%E8%A1%A8%E6%9C%80%E6%96%B0%E5%8F%8D%E5%BA%8F%E5%88%97%E6%BC%8F%E6%B4%9E/" target="_self">
-        <div>
-          0x01 起因​			某次护网应急响应，发现了最新版的某报表的被打掉了，日记记录也是channel触发的反序列化，和springkill大哥一起愉快调试两天了，想着已经玩了一个多月，差不多见光死了，就和大家分享下得了。 0x02 历史漏洞​		某报表channel反序列化漏洞历史爆出三个链子，一个cb，一个singobject的二次反序列，一个Hibernate。下载最新版v10，查找黑名单 co
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-23 00:13" pubdate>
-              2024-06-23
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/08/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8-%E4%B8%89/" target="_self">
-          静态恶意代码逃逸(三)
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/08/%E9%9D%99%E6%80%81%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E9%80%83%E9%80%B8-%E4%B8%89/" target="_self">
-        <div>
-          分离0x01 管道接收shellcode何为管道：管道是通过网络来完成进程间的通信，它屏蔽了底层的网络协议细节。 通常与Pipe相关的API都与管道有关，包括Cobaltstrike External C2也是用的管道进行进程通信，一般管道是一个公开的内核对象，所有进程都可以访问。 1234567891011121314151617181920212223242526272829303132333
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-08 20:41" pubdate>
-              2024-06-08
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%85%8D%E6%9D%80/">#免杀</a>
             
           </div>
         

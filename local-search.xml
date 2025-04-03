@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>c3p0探索——newgadget</title>
+    <link href="/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/"/>
+    <url>/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/</url>
+    
+    <content type="html"><![CDATA[<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>​主要是我和springkill研究成功的一部分。 2025补天沙龙城市参会议题。复现demo的地址<a href="https://github.com/unam4/c3p0explore">https://github.com/unam4/c3p0explore</a></p><div class="row">    <embed src="c3p0新链探索—深入挖掘数据库连接池的安全隐患—unam4.pdf" width="100%" height="550" type="application/pdf"></div><h3 id="spring4shell-复现"><a href="#spring4shell-复现" class="headerlink" title="spring4shell 复现"></a>spring4shell 复现</h3><p>​原理见ppt</p><p>​这里以jndi 复现，也可以使用反序列化复现</p><p><img src="image-20250404014641040.png" alt="image-20250404014641040"></p><p>启动jndi服务</p><p><img src="image-20250404014736049.png" alt="image-20250404014736049"></p><p>成功打入第一个</p><p><img src="image-20250404014801419.png" alt="image-20250404014801419"></p><p>然后一次打入pv1-pv5</p><p><img src="image-20250404015031586.png" alt="image-20250404015031586"></p><p>打完后会在root下生成shell1.jsp  文件名有prefix+fileDateFormat+.jsp 构成</p><p><img src="image-20250404015146029.png" alt="image-20250404015146029"></p><p>最后成执行。</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>议题</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>sqllitejdbc攻击</title>
     <link href="/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/"/>
     <url>/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/</url>
@@ -89,6 +108,12 @@
     <content type="html"><![CDATA[<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>​主要是我和springkill今年研究成功的一部分。 2024补天大会参会议题。</p><div class="row">    <embed src="JNDI新攻击面探索.pdf" width="100%" height="550" type="application/pdf"></div>]]></content>
     
     
+    
+    <tags>
+      
+      <tag>议题</tag>
+      
+    </tags>
     
   </entry>
   

